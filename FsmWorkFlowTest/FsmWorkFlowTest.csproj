@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CommonStateWorkflow\CommonStateWorkflow.csproj" />
     <ProjectReference Include="..\FsmWorkFlow\FsmWorkFlow.csproj" />
   </ItemGroup>
 
