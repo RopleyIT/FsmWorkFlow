@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34221.43
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FsmWorkFlow", "FsmWorkFlow\FsmWorkFlow.csproj", "{DD7B2531-5949-4565-AE0A-68AAC43F21F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FsmWorkFlowTest", "FsmWorkFlowTest\FsmWorkFlowTest.csproj", "{D69618C7-4CAA-4A9F-A991-2F969527C692}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DD7B2531-5949-4565-AE0A-68AAC43F21F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD7B2531-5949-4565-AE0A-68AAC43F21F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD7B2531-5949-4565-AE0A-68AAC43F21F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD7B2531-5949-4565-AE0A-68AAC43F21F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D69618C7-4CAA-4A9F-A991-2F969527C692}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D69618C7-4CAA-4A9F-A991-2F969527C692}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D69618C7-4CAA-4A9F-A991-2F969527C692}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D69618C7-4CAA-4A9F-A991-2F969527C692}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1D9E87F8-2F26-4B39-B2B8-39184086082A}
+	EndGlobalSection
+EndGlobal
