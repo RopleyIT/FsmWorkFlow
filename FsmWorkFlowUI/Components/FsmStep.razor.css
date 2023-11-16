@@ -1,0 +1,28 @@
+﻿.wfactivestep, .wfstep {
+    display: flex;
+    align-items: center;
+    height: 3rem;
+    padding: 1rem;
+    border-radius: 1rem 1rem 0rem 0rem;
+}
+
+.wfactivestep {
+    border-left: 2px solid gray;
+    border-top: 2px solid gray;
+    border-right: 2px solid gray;
+}
+
+.wfstep {
+    background-color: #EEE;
+    border: 2px solid gray;
+}
+
+.wfdisabledstep {
+    background-color: #EEE;
+    border: 2px solid gray;
+    color: gray;
+}
+
+.padleft {
+    padding-left: 1rem;
+}

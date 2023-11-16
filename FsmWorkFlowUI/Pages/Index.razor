@@ -1,0 +1,34 @@
+﻿@using FsmWorkFlowUI.Components
+@page "/"
+
+<PageTitle>Index</PageTitle>
+
+<h1>Fsm WorkFlow Experiments</h1>
+
+<FsmWorkFlow @ref=myWorkFlow>
+    <FsmStep Name="StepOne" Status="@FsmStepStatus.Blocked" Enabled="@true">
+        <FsmEvent On="Whistle" Then="StepTwo"/>
+        <FsmEvent On="Scream" Then="StepOne"/>
+    </FsmStep>
+    <FsmStep Name="StepTwo" Status="@FsmStepStatus.Warning" Enabled="@true">
+        <FsmEvent On="Whistle" Then="StepOne"/>
+        <FsmEvent On="Scream" Then="StepTwo"/>
+    </FsmStep>
+</FsmWorkFlow>
+<button onclick="@showTree">Show tree</button>
+<p>@treeContent</p>
+@code
+{
+    FsmWorkFlow? myWorkFlow;
+    string treeContent = "";
+    public void showTree()
+    {
+        treeContent = "";
+        foreach(FsmStep step in myWorkFlow.States)
+        {
+            treeContent += step.Name + ": ";
+            foreach (FsmEvent e in step.Transitions)
+                treeContent += e.On + "->" + e.Then + " ";
+        }
+    }
+}
