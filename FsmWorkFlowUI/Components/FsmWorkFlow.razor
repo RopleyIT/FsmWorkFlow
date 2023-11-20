@@ -5,6 +5,8 @@
     </CascadingValue>
     <div class="fillright" />
     <div class="newrow" />
-    <FsmStepBody WorkFlow=@this />
+    <div class="stepbody">
+        @ActiveState?.TabBody
+    </div>
 </div>
 

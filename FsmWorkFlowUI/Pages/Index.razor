@@ -6,16 +6,33 @@
 <h1>Fsm WorkFlow Experiments</h1>
 
 <FsmWorkFlow @ref=myWorkFlow>
-    <FsmStep Name="StepOne" Status="@FsmStepStatus.Blocked" Enabled="@true">
+    <FsmStep Name="StepOne" Status="@FsmStepStatus.ToDo" Enabled="@true">
         <FsmEvent On="Whistle" Then="StepTwo"/>
-        <FsmEvent On="Scream" Then="StepOne"/>
+        <FsmEvent On="Scream" Then="StepThree"/>
+        <FsmStepBody>
+            <p>I am step 1</p>
+            <button @onclick=@(() => Fire("Whistle"))>Whistle</button>
+            <button @onclick=@(() => Fire("Scream"))>Scream</button>
+        </FsmStepBody>
     </FsmStep>
-    <FsmStep Name="StepTwo" Status="@FsmStepStatus.Warning" Enabled="@true">
+    <FsmStep Name="StepTwo" Status="@FsmStepStatus.InProgress" Enabled="@true">
         <FsmEvent On="Whistle" Then="StepOne"/>
-        <FsmEvent On="Scream" Then="StepTwo"/>
+        <FsmEvent On="Scream" Then="StepThree"/>
+        <FsmStepBody>
+            <p>I be step 2</p>
+            <button @onclick=@(() => Fire("Whistle"))>Whistle</button>
+            <button @onclick=@(() => Fire("Scream"))>Scream</button>
+        </FsmStepBody>
+    </FsmStep>
+    <FsmStep Name="StepThree" Status="@FsmStepStatus.Done" Enabled="@true">
+        <FsmEvent On="Bang" Then="StepTwo" />
+        <FsmStepBody>
+            <p>Step 3 I am</p>
+            <button @onclick=@(() => Fire("Bang"))>Bang</button>
+        </FsmStepBody>
     </FsmStep>
 </FsmWorkFlow>
-<button onclick="@showTree">Show tree</button>
+<button @onclick="@showTree">Show tree</button>
 <p>@treeContent</p>
 @code
 {
@@ -31,4 +48,6 @@
                 treeContent += e.On + "->" + e.Then + " ";
         }
     }
+    public void Fire(string s)
+    => myWorkFlow?.Fire(s);
 }

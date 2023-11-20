@@ -10,6 +10,20 @@ public partial class FsmStep
     public RenderFragment? ChildContent { get; set; }
 
     /// <summary>
+    /// Propagate the tab content up to the parent where
+    /// it will be used to infill the area beneath the buttons
+    /// </summary>
+
+    public RenderFragment? TabBody => StepBody?.ChildContent;
+
+    /// <summary>
+    /// The content container for the body of the
+    /// tab that will appear beneath the step button
+    /// </summary>
+    
+    public ITab? StepBody { get; set; }
+
+    /// <summary>
     /// The parent workflow (state machine) to which
     /// this step (state) belongs
     /// </summary>
@@ -69,27 +83,12 @@ public partial class FsmStep
     }
 
     /// <summary>
-    /// Enables the content part of the step if it
-    /// is the currently selected step in the workflow
-    /// </summary>
-    
-    private string Hidden => Active() ? "" : "hidden";
-
-    /// <summary>
     /// Generate the CSS class to use based on the
     /// state of the step, e.g. selected, not selected
     /// </summary>
-    
-    private string StepClass
-    {
-        get
-        {
-            if (Name == FsmWorkFlow?.ActiveState?.Name)
-                return "wfactivestep";
-            else
-                return "wfstep";
-        }
-    }
+
+    private string StepClass 
+        => Active() ? "wfactivestep" : "wfstep";
 
     private string Icon => Status switch
     {

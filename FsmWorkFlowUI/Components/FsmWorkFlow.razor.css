@@ -14,3 +14,10 @@
     height: 0;
 }
 
+.stepbody {
+    width: 100%;
+    padding: 1rem;
+    border-left: 2px solid gray;
+    border-bottom: 2px solid gray;
+    border-right: 2px solid gray;
+}

@@ -84,12 +84,67 @@ public partial class FsmWorkFlow
         return e.NextStep;
     }
 
+    /// <summary>
+    /// Obtain the set of navigable transitions from the
+    /// active step. To be navigable, they must have the
+    /// specified event name, and must either be without
+    /// a condition function (When) or when called, the
+    /// condition function must return true.
+    /// </summary>
+    /// <param name="eventName">The name given to this
+    /// particular event</param>
+    /// <returns>The set of navigable events from which
+    /// we might choose to navigate away from this
+    /// step</returns>
+    
+    public IEnumerable<FsmEvent> ValidTransitions(string eventName)
+        => EventsFromName(eventName)
+                .Where(e => e.When == null || e.When());
+
+    /// <summary>
+    /// It is just possible that there is more than
+    /// one transition from the current step to the
+    /// target step, probably with differing guard
+    /// conditions and names. This method returns
+    /// the target step only if there is a single
+    /// transition that matches the search criteria.
+    /// This method is used to decide
+    /// </summary>
+    /// <param name="target">The destination step</param>
+    /// <returns>The event object that yields this
+    /// transition</returns>
+    
+    public FsmEvent? SingleValidTransition
+        (FsmStep target)
+    {
+        if (ActiveState == null || ActiveState.Transitions == null)
+            return null;
+        var targetTransitions
+            = ActiveState.Transitions
+                .Where(e => e.Then != null 
+                && e.Then == target.Name
+                && (e.When == null || e.When()))
+                .ToArray();
+        if (targetTransitions.Length == 1)
+            return targetTransitions[0];
+        else
+            return null;
+    }
+    
+    /// <summary>
+    /// Call this method from your code in the
+    /// FsmStepBody to fire an event
+    /// </summary>
+    /// <param name="eventName">The name of the
+    /// event you wish to trigger</param>
+    
     public void Fire(string eventName)
     {
         // Is this a valid event for the current state?
         // If so, find the transition object for it.
 
-        IEnumerable<FsmEvent> transitions = EventsFromName(eventName);
+        IEnumerable<FsmEvent> transitions 
+            = EventsFromName(eventName);
         if (!transitions.Any())
             return;
 

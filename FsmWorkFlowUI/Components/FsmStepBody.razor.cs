@@ -2,34 +2,43 @@
 
 namespace FsmWorkFlowUI.Components;
 
+/// <summary>
+/// Class to contain the actual content of the currently
+/// active step in the workflow. Implements the logic
+/// needed to initialize the parent step with a reference
+/// to this content.
+/// </summary>
+
 public partial class FsmStepBody
 {
     /// <summary>
+    /// Implements the ITab interface so that the
+    /// content can be extracted and injected into
+    /// the body of the workflow control
+    /// </summary>
+   
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
     /// The parent FsmStep object that this and
-    /// other FsmEvents describe transitions from
+    /// other FsmEvents describe transitions from.
+    /// This is only used to initialize the parent's
+    /// StepBody member to point at the content.
     /// </summary>
 
-    [Parameter]
-    public FsmWorkFlow? WorkFlow { get; set; }
+    [CascadingParameter]
+    public FsmStep? Step { get; set; }
 
-    public string ShowTree()
+    /// <summary>
+    /// Tell the parent about this body's markup content
+    /// so that it can be painted when this is the
+    /// selected step
+    /// </summary>
+    
+    protected override void OnInitialized()
     {
-        string treeContent = "";
-        if (WorkFlow == null)
-            return "Null workflow";
-        if (WorkFlow.States == null)
-            return "No states in workflow";
-        foreach (FsmStep step in WorkFlow.States)
-        {
-            if (step == WorkFlow.ActiveState)
-                treeContent += "Active State:";
-            treeContent += step.Name + ": ";
-            if (step.Transitions == null)
-                treeContent += "no transitions ";
-            else
-                foreach (FsmEvent e in step.Transitions)
-                    treeContent += e.On + "->" + e.Then + " ";
-        }
-        return treeContent;
+        if (Step != null)
+            Step.StepBody = this;
     }
 }
