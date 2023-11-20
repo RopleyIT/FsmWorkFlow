@@ -57,8 +57,29 @@ public partial class FsmStep
     /// out to indicate this.
     /// </summary>
 
-    [Parameter]
-    public bool Enabled { get; set; }
+    public bool Enabled 
+        => SingleValidEventToHere != null;
+
+    /// <summary>
+    /// If there is only one event that could be fired
+    /// successfully in the active step that would
+    /// get us to this step, find the name of the event
+    /// so that we can Fire(eventName) from the tab
+    /// when clicked on.
+    /// </summary>
+    
+    public string? SingleValidEventToHere
+    {
+        get
+        {
+            FsmEvent? toHere = FsmWorkFlow?
+                .SingleValidTransitionTo(this);
+            if (toHere != null)
+                return toHere.On;
+            else
+                return null;
+        }
+    }
 
     /// <summary>
     /// Is this the currently selected step?
@@ -76,11 +97,35 @@ public partial class FsmStep
 
     public List<FsmEvent>? Transitions { get; set; }
 
+    /// <summary>
+    /// Propagate the event firing to the workflow
+    /// manager parent
+    /// </summary>
+    /// <param name="eventName">The name of the
+    /// event to be fired</param>
+    
+    public void Fire(string eventName)
+        => FsmWorkFlow?.Fire(eventName);
+
+    /// <summary>
+    /// If there is a single valid event from
+    /// the active state to this state, fire it
+    /// </summary>
+    
+    public void FireDefault()
+    {
+        string? toFire = SingleValidEventToHere;
+        if (toFire != null)
+            Fire(toFire);
+    }
+
     protected override void OnInitialized()
     {
         Transitions = new();
         FsmWorkFlow?.States?.Add(this);
     }
+
+    private int StepNumber => FsmWorkFlow?.IndexOfStep(this)??0;
 
     /// <summary>
     /// Generate the CSS class to use based on the

@@ -39,6 +39,7 @@ public partial class FsmWorkFlow
         set
         {
             activeStep = value;
+            StateHasChanged();
         }
     }
 
@@ -51,6 +52,34 @@ public partial class FsmWorkFlow
 
     public FsmStep? StepFromName(string? name)
         => States?.FirstOrDefault(s => s.Name == name);
+
+    /// <summary>
+    /// Find the index of the step with the specified name
+    /// </summary>
+    /// <param name="name">the name of the step to find</param>
+    /// <returns>0 if step not found, 1-based index if
+    /// found</returns>
+    
+    public int IndexOfStep(string? name)
+    {
+        if(string.IsNullOrWhiteSpace(name)) 
+            return 0;
+        return IndexOfStep(StepFromName(name));
+    }
+
+    /// <summary>
+    /// Find the index of the specified step
+    /// </summary>
+    /// <param name="step">The step to find</param>
+    /// <returns>0 if step not found, 1-based index if
+    /// found</returns>
+    
+    public int IndexOfStep(FsmStep? step)
+    {
+        if(step == null || States == null) 
+            return 0;
+        return 1 + States.IndexOf(step);
+    }
 
     /// <summary>
     /// From the list of transitions available in the
@@ -108,13 +137,20 @@ public partial class FsmWorkFlow
     /// conditions and names. This method returns
     /// the target step only if there is a single
     /// transition that matches the search criteria.
-    /// This method is used to decide
+    /// This method is used to decide whether to
+    /// grey out a tab. If there is a clear single
+    /// unambiguous transition to the target step,
+    /// the tab will be treated as a button firing
+    /// that event. If not, the tab is greyed, and
+    /// the buttons explicitly placed in the tab
+    /// must call Fire(stepName) to select the
+    /// next step.
     /// </summary>
     /// <param name="target">The destination step</param>
     /// <returns>The event object that yields this
     /// transition</returns>
     
-    public FsmEvent? SingleValidTransition
+    public FsmEvent? SingleValidTransitionTo
         (FsmStep target)
     {
         if (ActiveState == null || ActiveState.Transitions == null)
@@ -161,7 +197,9 @@ public partial class FsmWorkFlow
         if (validEvent != null)
         {
             validEvent.Do?.Invoke();
-            ActiveState = NextStep(validEvent);
+            FsmStep? nextStep = NextStep(validEvent);
+            if (nextStep != null)
+                ActiveState = nextStep;
         }
     }
 }

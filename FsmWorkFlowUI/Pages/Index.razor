@@ -6,7 +6,7 @@
 <h1>Fsm WorkFlow Experiments</h1>
 
 <FsmWorkFlow @ref=myWorkFlow>
-    <FsmStep Name="StepOne" Status="@FsmStepStatus.ToDo" Enabled="@true">
+    <FsmStep Name="StepOne" Status="@FsmStepStatus.ToDo">
         <FsmEvent On="Whistle" Then="StepTwo"/>
         <FsmEvent On="Scream" Then="StepThree"/>
         <FsmStepBody>
@@ -15,7 +15,7 @@
             <button @onclick=@(() => Fire("Scream"))>Scream</button>
         </FsmStepBody>
     </FsmStep>
-    <FsmStep Name="StepTwo" Status="@FsmStepStatus.InProgress" Enabled="@true">
+    <FsmStep Name="StepTwo" Status="@FsmStepStatus.InProgress">
         <FsmEvent On="Whistle" Then="StepOne"/>
         <FsmEvent On="Scream" Then="StepThree"/>
         <FsmStepBody>
@@ -24,7 +24,7 @@
             <button @onclick=@(() => Fire("Scream"))>Scream</button>
         </FsmStepBody>
     </FsmStep>
-    <FsmStep Name="StepThree" Status="@FsmStepStatus.Done" Enabled="@true">
+    <FsmStep Name="StepThree" Status="@FsmStepStatus.Done">
         <FsmEvent On="Bang" Then="StepTwo" />
         <FsmStepBody>
             <p>Step 3 I am</p>

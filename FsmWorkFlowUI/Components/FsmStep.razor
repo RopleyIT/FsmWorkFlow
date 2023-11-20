@@ -1,7 +1,7 @@
-﻿<div class=@StepClass>
+﻿<div class=@StepClass @onclick="FireDefault">
     <RadzenIcon Icon="@Icon"
                 IconColor="@IconColour" />
-                <span class="padleft">FsmStep @Name</span>
+                <span class="padleft">@StepNumber @Name</span>
 </div>
 <CascadingValue Value="this">
     @ChildContent
