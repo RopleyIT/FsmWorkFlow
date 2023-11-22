@@ -1,0 +1,10 @@
+﻿
+.roundel {
+    color: white;
+    border-radius: 1.3rem;
+    width: 2.6rem;
+    height 2.6rem;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 2.6rem;
+}

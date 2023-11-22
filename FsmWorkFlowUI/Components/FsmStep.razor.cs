@@ -54,11 +54,13 @@ public partial class FsmStep
     /// If set, the step is reachable and can be clicked
     /// to navigate to it. If unset, the step is not
     /// reachable from the current state, and will be greyed
-    /// out to indicate this.
+    /// out to indicate this. Note that if the state is the
+    /// current state, it is deemed reachable because we have
+    /// reached it!
     /// </summary>
 
     public bool Enabled 
-        => SingleValidEventToHere != null;
+        => Active() || SingleValidEventToHere != null;
 
     /// <summary>
     /// If there is only one event that could be fired
@@ -145,6 +147,27 @@ public partial class FsmStep
         _ => "question_mark"
     };
 
+    private string TextStyle
+        => Enabled ? "color: black;" : "color: #999;";
+
+    private string StepColour
+    {
+        get
+        {
+            if (!Enabled)
+                return "#999";
+            else
+                return Status switch
+                {
+                    FsmStepStatus.ToDo => "black",
+                    FsmStepStatus.InProgress => "orange",
+                    FsmStepStatus.Done => "limegreen",
+                    FsmStepStatus.Warning => "tomato",
+                    FsmStepStatus.Blocked => "red",
+                    _ => "999"
+                };
+        }
+    }
     private string IconColour
     {
         get

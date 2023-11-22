@@ -1,4 +1,6 @@
 ﻿@using FsmWorkFlowUI.Components
+@inject ILogger<Index> IndexLogger
+
 @page "/"
 
 <PageTitle>Index</PageTitle>
@@ -38,16 +40,21 @@
 {
     FsmWorkFlow? myWorkFlow;
     string treeContent = "";
+
     public void showTree()
     {
+        IndexLogger.LogInformation("Showing tree");
         treeContent = "";
-        foreach(FsmStep step in myWorkFlow.States)
-        {
-            treeContent += step.Name + ": ";
-            foreach (FsmEvent e in step.Transitions)
-                treeContent += e.On + "->" + e.Then + " ";
-        }
+        if(myWorkFlow != null && myWorkFlow.States != null)
+            foreach(FsmStep step in myWorkFlow.States)
+            {
+                treeContent += step.Name + ": ";
+                if(step.Transitions != null)
+                    foreach (FsmEvent e in step.Transitions)
+                        treeContent += e.On + "->" + e.Then + " ";
+            }
     }
+
     public void Fire(string s)
     => myWorkFlow?.Fire(s);
 }

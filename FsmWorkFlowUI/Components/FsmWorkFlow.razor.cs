@@ -202,4 +202,19 @@ public partial class FsmWorkFlow
                 ActiveState = nextStep;
         }
     }
+
+    /// <summary>
+    /// The first rendering doesn't happen without this
+    /// forced render, as the initialisation is all
+    /// being done without firing events or changing
+    /// exposed parameters.
+    /// </summary>
+    /// <param name="firstRender">True if this is the
+    /// very first rendering of the component</param>
+    
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && ShouldRender())
+            StateHasChanged();
+    }
 }

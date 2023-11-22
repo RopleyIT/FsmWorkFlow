@@ -1,0 +1,16 @@
+﻿<div class="roundel" style="@ColourStyle()">@StepNum</div>
+
+@code {
+        [Parameter]
+        public int StepNum { get; set; }
+
+        [Parameter]
+        public string? Colour { get; set; }
+
+        private string ColourStyle()
+        {
+            if (Colour == null)
+                Colour = Colors.Base400;
+            return $"background-color: {Colour};";
+        }
+}

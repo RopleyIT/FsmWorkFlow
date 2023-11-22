@@ -41,4 +41,6 @@ public partial class FsmStepBody
         if (Step != null)
             Step.StepBody = this;
     }
+
+    /*** YOUR ADDITIONAL STEP-SPECIFIC CODE GOES HERE ***/
 }
