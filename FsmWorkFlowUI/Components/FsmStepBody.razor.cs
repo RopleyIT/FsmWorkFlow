@@ -42,5 +42,19 @@ public partial class FsmStepBody
             Step.StepBody = this;
     }
 
-    /*** YOUR ADDITIONAL STEP-SPECIFIC CODE GOES HERE ***/
+    /// <summary>
+    /// The link up to the model from the top-level
+    /// FsmWorkFlow element. Remember that currently
+    /// you need to cast this to the correct type for
+    /// the model before acessing its members. At some
+    /// point in the future, we'll get this to be strongly
+    /// typed using @typeparam directives, and adding
+    /// generic arguments to all the classes down the
+    /// hierarchy.
+    /// </summary>
+    
+    public object? Model
+        => Step?.FsmWorkFlow?.Model;
+
+    /** YOUR ADDITIONAL STEP-SPECIFIC CODE GOES BENEATH HERE **/
 }

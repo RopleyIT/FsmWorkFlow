@@ -5,6 +5,21 @@ namespace FsmWorkFlowUI.Components;
 public partial class FsmWorkFlow
 {
     /// <summary>
+    /// The injected model being manipulated by this
+    /// workflow. Ideally we should strongly type this
+    /// using an @typeparam in the .razor file. However
+    /// this needs the template type to be propagated
+    /// right down through all the FsmWorkflow elements
+    /// and becomes a big piece of work for the future!
+    /// For now, when extracting the model in your code
+    /// down at the FsmStepBody level in the hierarchy,
+    /// just cast it to the expected type.
+    /// </summary>
+    
+    [Parameter]
+    public object? Model { get; set; }
+
+    /// <summary>
     /// ChildContent is used by the Blazor runtime to
     /// determine exacly where the content between the
     /// opening and closing tags should be placed in

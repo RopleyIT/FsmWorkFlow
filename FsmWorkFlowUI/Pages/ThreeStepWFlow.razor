@@ -1,0 +1,208 @@
+﻿@page "/threestepwflow"
+
+@using FsmWorkFlowUI.Data
+@using FsmWorkFlowUI.Components
+
+@inject NavigationManager navigationManager
+@inject ExampleService exampleService
+
+<h3>5-Step Analysis Workflow Example</h3>
+<FsmWorkFlow Model="@model" @ref=workFlow>
+    <FsmStep Name="Select Batch" Status="@BatchSupplied()">
+        <FsmEvent On="Selected" 
+            When="@ValidBatch" 
+            Then="Select Analyte" />
+        <FsmStepBody>
+            <p>Please input a batch number to be analysed</p>
+            <EditForm Model="@model"
+                OnSubmit=@(()=>Fire("Selected"))>
+                <div class="form-group">
+                    <label for="batch">Selected batch number</label>
+                    <InputNumber @bind-Value=model.BatchNumber
+                        id="batch"
+                        ParsingErrorMessage="Must be a positive integer" />
+                </div>
+                <input type="submit" class="btn btn-primary" value="Save" />
+            </EditForm>
+        </FsmStepBody>
+    </FsmStep>
+
+    <FsmStep Name="Select Analyte" Status="@AnalyteAndBatchSupplied()">
+        <FsmEvent On="Selected" 
+            When="@ValidAnalyteAndBatch" 
+            Then="First Signer" />
+        <FsmEvent On="Back" 
+            Then="Select Batch" />
+        <FsmStepBody>
+            <p>Please select an analyte for the analysis</p>
+            <EditForm Model="@model" OnSubmit=@(()=>Fire("Selected"))>
+                <div class="form-group">
+                    <label for="analyte">Select analyte</label>
+                    <InputSelect @bind-Value=model.Analyte id="analyte">
+                        <option value="Not selected" selected>Select analyte...</option>
+                        @foreach(string a in ExampleModel.Analytes)
+                        {
+                            <option value="@a">@a</option>
+                        }
+                    </InputSelect>
+                </div>
+                <input type="submit" class="btn btn-primary" value="Save" />
+            </EditForm>
+        </FsmStepBody>
+    </FsmStep>
+
+    <FsmStep Name="First Signer" Status="@Signed()">
+        <FsmEvent On="Sign"
+            When="@ValidFirstSignature"
+            Then="Second Signer" />
+        <FsmEvent On="Back"
+            Then="Select Analyte" />
+        <FsmEvent On="Restart"
+            Then="Select Batch" />
+        <FsmStepBody>
+            <p>Please sign after checking the data supplied</p>
+            <p>Batch number: @model.BatchNumber</p>
+            <p>Analyte: @model.Analyte</p>
+            <EditForm Model="@model" OnSubmit=@SignFirst>
+                <div class="form-group">
+                    <label for="firstuser">Login name</label>
+                    <InputText @bind-Value=model.FirstSignature id="firstuser" />
+                    <label for="firstpass">Password</label>
+                    <InputText @bind-Value=password id="firstpass" />
+                </div>
+                <input type="submit" class="btn btn-primary" value="Sign" />
+            </EditForm>
+        </FsmStepBody>
+    </FsmStep>
+
+    <FsmStep Name="Second Signer" Status="@CounterSigned()">
+        <FsmEvent On="Sign"
+            When="@ValidSecondSignature"
+            Do="@PerformAnalysis"
+            Then="Results" />
+        <FsmEvent On="Back"
+            Then="Select Analyte" />
+        <FsmEvent On="Restart"
+            Then="Select Batch" />
+        <FsmStepBody>
+            <p>Please counter-sign after checking the data supplied</p>
+            <p>Batch number: @model.BatchNumber</p>
+            <p>Analyte: @model.Analyte</p>
+            <p>First signer: @model.FirstSignature</p>
+            <EditForm Model="@model" OnSubmit=@SignSecond>
+                <div class="form-group">
+                    <label for="seconduser">Login name</label>
+                    <InputText @bind-Value=model.SecondSignature id="seconduser" />
+                    <label for="secondpass">Password</label>
+                    <InputText @bind-Value=password id="secondpass" />
+                </div>
+                <input type="submit" class="btn btn-primary" value="Perform analysis" />
+            </EditForm>
+        </FsmStepBody>
+    </FsmStep>
+
+    <FsmStep Name="Results">
+        <FsmStepBody>
+            <p>
+                Batch @model.BatchNumber analysed
+                successfully for @model.Analyte
+            </p>
+            <p>Anaysis ID: @model.ResultId</p>
+            <button onclick=@(()=>navigationManager.NavigateTo("/"))>Done!</button>
+        </FsmStepBody>
+    </FsmStep>
+</FsmWorkFlow>
+
+@code {
+    ExampleModel? model;
+    FsmWorkFlow? workFlow;
+    string? password;
+
+    protected override void OnInitialized()
+    {
+        model = exampleService.GetModel();
+    }
+
+    private void Fire(string eventName)
+        => workFlow?.Fire(eventName);
+
+    private void SignFirst()
+    {
+        if (model == null)
+            return;
+
+        // First invalidate the counter-signer
+
+        model.SecondUserKey = 0;
+
+        // Validate the credentials
+
+        model.FirstUserKey = exampleService.IssueKey
+            (model.FirstSignature, password);
+        password = null;
+
+        // Attempt to perform the transition to the
+        // next step in the workflow. Will fail on
+        // a bad first signature.
+
+        Fire("Sign");
+    }
+
+    private void SignSecond()
+    {
+        if (model == null)
+            return;
+
+        // Validate the credentials
+
+        model.SecondUserKey = exampleService.IssueKey
+            (model.SecondSignature, password);
+        password = null;
+
+        // Attempt to perform the transition to the
+        // next step in the workflow. Will fail on
+        // a bad first signature.
+
+        Fire("Sign");
+    }
+
+    // Event condition functions (When functions)
+
+    private bool ValidBatch() => model?.ValidBatch ?? false;
+
+    private bool ValidAnalyteAndBatch()
+        => ValidBatch() && (model?.ValidAnalyte ?? false);
+
+    private bool ValidFirstSignature() 
+        => ValidAnalyteAndBatch() 
+        && (exampleService.ValidUserKey(model?.FirstUserKey));
+
+    private bool ValidSecondSignature()
+        => ValidFirstSignature()
+        && (exampleService.ValidUserKey(model?.SecondUserKey));
+
+    // Action functions on transitions (Do functions)
+
+    private void PerformAnalysis()
+    {
+        exampleService.Analyze(model);
+    }
+
+    // Step status functions, used to choose
+    // status colour for each step tab
+
+    private FsmStepStatus StatusForValidation(Func<bool> validator)
+        => validator() ? FsmStepStatus.Done : FsmStepStatus.InProgress;
+
+    private FsmStepStatus BatchSupplied()
+        => StatusForValidation(ValidBatch);
+
+    private FsmStepStatus AnalyteAndBatchSupplied()
+        => StatusForValidation(ValidAnalyteAndBatch);
+
+    private FsmStepStatus Signed()
+        => StatusForValidation(ValidFirstSignature);
+
+    private FsmStepStatus CounterSigned()
+        => StatusForValidation(ValidSecondSignature);
+}

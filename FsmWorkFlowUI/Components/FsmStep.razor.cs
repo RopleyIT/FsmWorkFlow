@@ -123,6 +123,7 @@ public partial class FsmStep
 
     protected override void OnInitialized()
     {
+        Status = FsmStepStatus.ToDo;
         Transitions = new();
         FsmWorkFlow?.States?.Add(this);
     }
