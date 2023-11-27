@@ -7,6 +7,7 @@
 @inject ExampleService exampleService
 
 <h3>5-Step Analysis Workflow Example</h3>
+
 <FsmWorkFlow Model="@model" @ref=workFlow>
     <FsmStep Name="Select Batch" Status="@BatchSupplied()">
         <FsmEvent On="Selected" 
