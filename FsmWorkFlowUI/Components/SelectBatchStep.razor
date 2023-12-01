@@ -1,0 +1,23 @@
+﻿@using FsmWorkFlowUI.Data
+
+<p>Please input a batch number to be analysed</p>
+<EditForm Model="@model"
+          OnSubmit=@(()=>Fire("Selected"))>
+    <div class="form-group">
+        <label for="batch">Selected batch number</label>
+        <InputNumber @bind-Value=model.BatchNumber
+                     id="batch"
+                     ParsingErrorMessage="Must be a positive integer" />
+    </div>
+    <input type="submit" class="btn btn-primary" value="Save" />
+</EditForm>
+
+@code {
+    [Parameter] public FsmWorkFlow? WorkFlow { get; set; }
+
+    private ExampleModel? model
+        => WorkFlow?.Model as ExampleModel;
+
+    private void Fire(string eventName)
+        => WorkFlow?.Fire(eventName);
+}

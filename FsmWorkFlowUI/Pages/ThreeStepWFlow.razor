@@ -14,17 +14,7 @@
             When="@ValidBatch" 
             Then="Select Analyte" />
         <FsmStepBody>
-            <p>Please input a batch number to be analysed</p>
-            <EditForm Model="@model"
-                OnSubmit=@(()=>Fire("Selected"))>
-                <div class="form-group">
-                    <label for="batch">Selected batch number</label>
-                    <InputNumber @bind-Value=model.BatchNumber
-                        id="batch"
-                        ParsingErrorMessage="Must be a positive integer" />
-                </div>
-                <input type="submit" class="btn btn-primary" value="Save" />
-            </EditForm>
+            <SelectBatchStep WorkFlow=@workFlow />
         </FsmStepBody>
     </FsmStep>
 
@@ -35,20 +25,7 @@
         <FsmEvent On="Back" 
             Then="Select Batch" />
         <FsmStepBody>
-            <p>Please select an analyte for the analysis</p>
-            <EditForm Model="@model" OnSubmit=@(()=>Fire("Selected"))>
-                <div class="form-group">
-                    <label for="analyte">Select analyte</label>
-                    <InputSelect @bind-Value=model.Analyte id="analyte">
-                        <option value="Not selected" selected>Select analyte...</option>
-                        @foreach(string a in ExampleModel.Analytes)
-                        {
-                            <option value="@a">@a</option>
-                        }
-                    </InputSelect>
-                </div>
-                <input type="submit" class="btn btn-primary" value="Save" />
-            </EditForm>
+            <SelectAnalyteStep WorkFlow=@workFlow />
         </FsmStepBody>
     </FsmStep>
 

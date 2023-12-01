@@ -1,0 +1,27 @@
+﻿@using FsmWorkFlowUI.Data
+
+<p>Please select an analyte for the analysis</p>
+<EditForm Model="@model" OnSubmit=@(()=>Fire("Selected"))>
+    <div class="form-group">
+        <label for="analyte">Select analyte</label>
+        <InputSelect @bind-Value=model.Analyte id="analyte">
+            <option value="Not selected" selected>Select analyte...</option>
+            @foreach (string a in ExampleModel.Analytes)
+            {
+                <option value="@a">@a</option>
+            }
+        </InputSelect>
+    </div>
+    <input type="submit" class="btn btn-primary" value="Save" />
+</EditForm>
+
+
+@code {
+    [Parameter] public FsmWorkFlow? WorkFlow { get; set; }
+
+    private ExampleModel? model 
+        => WorkFlow?.Model as ExampleModel;
+
+    private void Fire(string eventName) 
+        => WorkFlow?.Fire(eventName);
+}
