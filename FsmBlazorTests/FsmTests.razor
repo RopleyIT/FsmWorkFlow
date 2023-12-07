@@ -1,0 +1,70 @@
+﻿@using FsmWorkFlowUI
+@using FsmWorkFlowUI.Components
+@using FsmWorkFlowUI.Data
+@using FsmWorkFlowUI.Pages
+
+@attribute [TestClass]
+@inherits BunitTestContext
+@code
+{
+    // Will hold the reference to the top level razor
+    // component or page we are loading for testing
+
+    IRenderedFragment? cut = null;
+
+    [TestInitialize]
+    public void InjectDependenciesAndLoadFirstPage()
+    {
+        // Arrange
+
+        // Because we don't run the code in Program.cs
+        // when running a test, we have to inject
+        // dependencies either here, or in a [TestInitialize]
+        // function in this [TestClass].
+
+        Services.AddSingleton<ExampleService>();
+
+        // First Act - For this batch of tests we will
+        // always start with the page containing the
+        // FSM workflow we are putting under test.
+
+        cut = Render(@<ThreeStepWFlow />);
+    }
+
+    [TestMethod]
+    public void TopLevelRazorPageRendersCorrectly()
+    {
+        // Assert - at least test to see if the starting
+        // page for the workflow renders successfully
+        
+        Assert.IsTrue(cut?.Markup.StartsWith
+            ("<h3>5-Step Analysis Workflow Example</h3>"));
+    }
+
+    [TestMethod]
+    public void ValidBatchNoNavigatesToAnalyteSelectionTab()
+    {
+        // Having loaded the first tab of the workflow,
+        // we want to simulate typing a batch number into
+        // the InputNumber element on the form.
+
+        var inputElement = cut?.Find("#batch");
+        Assert.IsNotNull(inputElement);
+        inputElement?.Change("23125465");
+        Assert.AreEqual("23125465", 
+            inputElement.Attributes["value"].Value);
+
+        // Now find the submit button and click on it
+
+        var submitElement = cut?.Find("[type=\"submit\"]");
+        Assert.IsNotNull(submitElement);
+        submitElement.Click();
+
+        // Verify that the workflow navigated to the second
+        // tab in the workflow that contains the analyte
+        // selection controls
+
+        var analyteElement = cut?.WaitForElement("#analyte");
+        Assert.IsNotNull(analyteElement);
+    }
+}
