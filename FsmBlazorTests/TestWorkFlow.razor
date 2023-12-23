@@ -1,0 +1,45 @@
+﻿@using FsmWorkFlowUI
+@using FsmWorkFlowUI.Components
+@using FsmWorkFlowUI.Data
+@using FsmWorkFlowUI.Pages
+
+<FsmWorkFlow Model="@testModel" @ref=testWorkFlow>
+    <FsmStep Name="FirstStep" Status="@FirstStepStatus">
+        <FsmEvent On="ToStep2"
+                  When="@(()=>FromStep1Guard??false)"
+                  Do="@FromStep1Action"
+                  Then="SecondStep" />
+        <FsmEvent On="StayInStep1" 
+                  Do="@FromStep1Action"
+                  Then="FirstStep" />
+        <FsmStepBody><p>In step 1</p></FsmStepBody>
+    </FsmStep>
+    <FsmStep Name="SecondStep" Status="@SecondStepStatus">
+        <FsmEvent On="ToStep1" 
+                  Do="@FromStep2Action"
+                  Then="FirstStep" />
+        <FsmEvent On="StayInStep2"
+                  When=@(()=>FromStep2Guard??false)
+                  Do="@FromStep2Action"
+                  Then="SecondStep" />
+        <FsmStepBody><p>In step 2</p></FsmStepBody>
+    </FsmStep>
+</FsmWorkFlow>
+
+@code
+{
+    [Parameter]
+    public string? testModel { get; set; }
+    [Parameter]
+    public FsmStepStatus FirstStepStatus { get; set; }
+    [Parameter]
+    public FsmStepStatus SecondStepStatus { get; set; }
+    [Parameter]
+    public bool? FromStep1Guard { get; set; }
+    [Parameter]
+    public bool? FromStep2Guard { get; set; }
+
+    public FsmWorkFlow? testWorkFlow { get; set; }
+    void FromStep1Action() { testModel += " From Step 1"; }
+    void FromStep2Action() { testModel += " From Step 2"; }
+}

@@ -1,0 +1,108 @@
+﻿@using FsmWorkFlowUI
+@using FsmWorkFlowUI.Components
+@using FsmWorkFlowUI.Data
+@using FsmWorkFlowUI.Pages
+
+@attribute [TestClass]
+@inherits BunitTestContext
+@code
+{
+    // Will hold the reference to the top level razor
+    // component or page we are loading for testing
+
+    IRenderedFragment? cut = null;
+    string modelForTest = string.Empty;
+    TestWorkFlow? theWorkFlow;
+    FsmWorkFlow? wf;
+
+    public void Arrange()
+    {
+        cut = Render(@<TestWorkFlow @ref=theWorkFlow
+              FirstStepStatus="@FsmStepStatus.ToDo"
+              SecondStepStatus="@FsmStepStatus.InProgress"
+              testModel="@modelForTest" />
+    );
+        wf = theWorkFlow?.testWorkFlow;
+    }
+
+    [TestMethod]
+    public void WorkFlowIsCreatedAndReferenced()
+    {
+        Arrange();
+        Assert.IsInstanceOfType(theWorkFlow, typeof(TestWorkFlow));
+        Assert.IsInstanceOfType(wf, typeof(FsmWorkFlow));
+    }
+
+    [TestMethod]
+    public void WorkFlowHasCorrectStatesAndTransitions()
+    {
+        Arrange();
+        Assert.AreEqual(2, wf?.States?.Count);
+        Assert.AreEqual("FirstStep", wf?.States?[0].Name);
+        Assert.AreEqual("SecondStep", wf?.States?[1].Name);
+        Assert.AreEqual(2, wf?.States?[0].Transitions?.Count);
+        Assert.AreEqual("ToStep2", wf?.States?[0].Transitions?[0].On);
+        Assert.AreEqual("StayInStep1", wf?.States?[0].Transitions?[1].On);
+        Assert.AreEqual("SecondStep", wf?.States?[0].Transitions?[0].Then);
+        Assert.AreEqual("FirstStep", wf?.States?[0].Transitions?[1].Then);
+        Assert.AreEqual(2, wf?.States?[1].Transitions?.Count);
+        Assert.AreEqual("ToStep1", wf?.States?[1].Transitions?[0].On);
+        Assert.AreEqual("StayInStep2", wf?.States?[1].Transitions?[1].On);
+        Assert.AreEqual("FirstStep", wf?.States?[1].Transitions?[0].Then);
+        Assert.AreEqual("SecondStep", wf?.States?[1].Transitions?[1].Then);
+    }
+
+    [TestMethod]
+    public void InitialStatusesOfTabsAreWellFormed()
+    {
+        Arrange();
+        Assert.AreEqual("FirstStep", wf?.ActiveState?.Name);
+        Assert.IsTrue(wf?.States?[0].Enabled, "FirstStep not enabled");
+        Assert.AreEqual(FsmStepStatus.ToDo, wf?.States?[0].Status);
+        Assert.IsFalse(wf?.States?[1].Enabled, "SecondStep enabled");
+        Assert.AreEqual(FsmStepStatus.InProgress, wf?.States?[1].Status);
+    }
+
+    [TestMethod]
+    public void TrueGuardsEnableTargetTabs()
+    {
+        cut = Render(@<TestWorkFlow @ref=theWorkFlow
+                FirstStepStatus="@FsmStepStatus.ToDo" 
+                SecondStepStatus="@FsmStepStatus.InProgress"
+                FromStep1Guard="@true"
+                testModel="@modelForTest" />
+    );
+        wf = theWorkFlow?.testWorkFlow;
+
+        Assert.IsTrue(wf?.States?[0].Transitions?[0].When(), "Guard not true");
+        Assert.IsTrue(wf?.States?[0].Enabled, "FirstStep not enabled");
+        Assert.IsTrue(wf?.States?[1].Enabled, "SecondStep not enabled");
+    }
+@*
+    [TestMethod]
+    public void TransitionsCanBeTaken()
+    {
+        cut = Render(@<TestWorkFlow @ref=theWorkFlow
+              FirstStepStatus="@FsmStepStatus.ToDo"
+              SecondStepStatus="@FsmStepStatus.InProgress"
+              FromStep1Guard="@true"
+              FromStep2Guard="@true"
+              testModel="@modelForTest" />
+    );
+        wf = theWorkFlow?.testWorkFlow;
+        var tabContent = cut.Find("p").TextContent;
+        tabContent.MarkupMatches("In step 1");
+        wf?.Fire("StayInStep1");
+        Assert.AreEqual(" From Step 1", modelForTest);
+        wf?.Fire("ToStep2");
+        Assert.AreEqual(" From Step 1 From Step 1", modelForTest);
+        tabContent = cut.Find("p").TextContent;
+        tabContent.MarkupMatches("In step 2");
+        wf?.Fire("StayInStep2");
+        Assert.AreEqual(" From Step 1 From Step 1 From Step 2", modelForTest);
+        wf?.Fire("ToStep1");
+        tabContent = cut.Find("p").TextContent;
+        tabContent.MarkupMatches("In step 1");
+        Assert.AreEqual(" From Step 1 From Step 1 From Step 2 From Step 2", modelForTest);
+    } *@
+}

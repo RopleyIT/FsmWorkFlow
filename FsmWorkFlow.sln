@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonStateWorkflow", "Comm
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FsmWorkFlowUI", "FsmWorkFlowUI\FsmWorkFlowUI.csproj", "{FDCFA3AC-AF97-4055-A8E0-9FB9F66A8685}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FsmBlazorTests", "FsmBlazorTests\FsmBlazorTests.csproj", "{565BA3C7-A389-4444-836F-4990FE660AD9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FsmBlazorTests", "FsmBlazorTests\FsmBlazorTests.csproj", "{565BA3C7-A389-4444-836F-4990FE660AD9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
