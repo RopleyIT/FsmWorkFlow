@@ -2,7 +2,7 @@
 @using FsmWorkFlowUI.Components
 @using FsmWorkFlowUI.Data
 @using FsmWorkFlowUI.Pages
-
+@namespace FsmBlazorTests
 @attribute [TestClass]
 @inherits BunitTestContext
 @code
@@ -74,11 +74,15 @@
     );
         wf = theWorkFlow?.testWorkFlow;
 
-        Assert.IsTrue(wf?.States?[0].Transitions?[0].When(), "Guard not true");
+        Func<bool>? when = wf?.States?[0].Transitions?[0].When;
+        if (when != null)
+            Assert.IsTrue(when(), "Guard not true");
+        else
+            Assert.Fail("Guard should not be null");
         Assert.IsTrue(wf?.States?[0].Enabled, "FirstStep not enabled");
         Assert.IsTrue(wf?.States?[1].Enabled, "SecondStep not enabled");
     }
-@*
+
     [TestMethod]
     public void TransitionsCanBeTaken()
     {
@@ -90,19 +94,26 @@
               testModel="@modelForTest" />
     );
         wf = theWorkFlow?.testWorkFlow;
-        var tabContent = cut.Find("p").TextContent;
-        tabContent.MarkupMatches("In step 1");
+        MatchTab("p", "In step 1");
         wf?.Fire("StayInStep1");
-        Assert.AreEqual(" From Step 1", modelForTest);
+        Assert.AreEqual(" From Step 1", theWorkFlow?.testModel);
         wf?.Fire("ToStep2");
-        Assert.AreEqual(" From Step 1 From Step 1", modelForTest);
-        tabContent = cut.Find("p").TextContent;
-        tabContent.MarkupMatches("In step 2");
+        Assert.AreEqual(" From Step 1 From Step 1", 
+        theWorkFlow?.testModel);
+        MatchTab("p", "In step 2");
         wf?.Fire("StayInStep2");
-        Assert.AreEqual(" From Step 1 From Step 1 From Step 2", modelForTest);
+        Assert.AreEqual(" From Step 1 From Step 1 From Step 2", 
+        theWorkFlow?.testModel);
         wf?.Fire("ToStep1");
-        tabContent = cut.Find("p").TextContent;
-        tabContent.MarkupMatches("In step 1");
-        Assert.AreEqual(" From Step 1 From Step 1 From Step 2 From Step 2", modelForTest);
-    } *@
+        MatchTab("p", "In step 1");
+        Assert.AreEqual(" From Step 1 From Step 1 From Step 2 From Step 2", 
+        theWorkFlow?.testModel);
+    } 
+
+    private void MatchTab(string cssSel, string content)
+    {
+        cut?.WaitForState(() => cut.Find(cssSel).TextContent == content);
+        string tabContent = cut.Find("p").TextContent;
+        tabContent.MarkupMatches(content);
+    }
 }

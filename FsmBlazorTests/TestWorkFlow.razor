@@ -2,7 +2,7 @@
 @using FsmWorkFlowUI.Components
 @using FsmWorkFlowUI.Data
 @using FsmWorkFlowUI.Pages
-
+@namespace FsmBlazorTests
 <FsmWorkFlow Model="@testModel" @ref=testWorkFlow>
     <FsmStep Name="FirstStep" Status="@FirstStepStatus">
         <FsmEvent On="ToStep2"

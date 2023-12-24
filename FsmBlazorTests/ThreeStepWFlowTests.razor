@@ -2,7 +2,7 @@
 @using FsmWorkFlowUI.Components
 @using FsmWorkFlowUI.Data
 @using FsmWorkFlowUI.Pages
-
+@namespace FsmBlazorTests
 @attribute [TestClass]
 @inherits BunitTestContext
 @code
@@ -52,7 +52,7 @@
         Assert.IsNotNull(inputElement);
         inputElement?.Change("23125465");
         Assert.AreEqual("23125465", 
-            inputElement.Attributes["value"].Value);
+            inputElement?.Attributes?["value"]?.Value);
 
         // Now find the submit button and click on it
 

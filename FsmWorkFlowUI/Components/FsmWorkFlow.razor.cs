@@ -54,7 +54,7 @@ public partial class FsmWorkFlow
         set
         {
             activeStep = value;
-            StateHasChanged();
+            InvokeAsync(StateHasChanged);
         }
     }
 
