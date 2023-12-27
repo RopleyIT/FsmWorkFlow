@@ -13,6 +13,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FsmWorkFlowUI", "FsmWorkFlo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FsmBlazorTests", "FsmBlazorTests\FsmBlazorTests.csproj", "{565BA3C7-A389-4444-836F-4990FE660AD9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{257BB2CD-C1B6-415E-B772-E52C6405F78B}"
+	ProjectSection(SolutionItems) = preProject
+		Docs\LoginWorkflow.svg = Docs\LoginWorkflow.svg
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
