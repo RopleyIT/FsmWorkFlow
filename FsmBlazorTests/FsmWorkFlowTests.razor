@@ -12,26 +12,45 @@
 
     IRenderedFragment? cut = null;
     string modelForTest = string.Empty;
-    TestWorkFlow? theWorkFlow;
+    TestWorkFlow? testWorkFlow;
     FsmWorkFlow? wf;
 
+    /// <summary>
+    /// Setup function called at the beginning of several
+    /// of the tests. Note we cannot use [TestInitialize]
+    /// as it is used in the base class to set up the
+    /// test context by BUnit itself.
+    /// </summary>
+    
     public void Arrange()
     {
-        cut = Render(@<TestWorkFlow @ref=theWorkFlow
+        cut = Render(@<TestWorkFlow @ref=testWorkFlow
               FirstStepStatus="@FsmStepStatus.ToDo"
               SecondStepStatus="@FsmStepStatus.InProgress"
               testModel="@modelForTest" />
     );
-        wf = theWorkFlow?.testWorkFlow;
+        wf = testWorkFlow?.fsmWorkFlow;
     }
+
+    /// <summary>
+    /// RULE: When a component containing an FsmWorkFlow is
+    /// instantiated, it contains an instantiated FsmWorkFlow
+    /// that is referenced via its @ref field
+    /// </summary>
 
     [TestMethod]
     public void WorkFlowIsCreatedAndReferenced()
     {
         Arrange();
-        Assert.IsInstanceOfType(theWorkFlow, typeof(TestWorkFlow));
+        Assert.IsInstanceOfType(testWorkFlow, typeof(TestWorkFlow));
         Assert.IsInstanceOfType(wf, typeof(FsmWorkFlow));
     }
+
+    /// <summary>
+    /// RULE: Test workflow containing an FsmWorkFlow is
+    /// initialised to contain states and transitions with
+    /// the correct state names, event names, and next states
+    /// </summary>
 
     [TestMethod]
     public void WorkFlowHasCorrectStatesAndTransitions()
@@ -52,6 +71,13 @@
         Assert.AreEqual("SecondStep", wf?.States?[1].Transitions?[1].Then);
     }
 
+    /// <summary>
+    /// RULE: Tabs in the FsmWorkFlow component are enabled if a
+    /// navigable transition to them is available from the current
+    /// state.
+    /// RULE: Enabled tabs have the status assigned to them.
+    /// </summary>
+
     [TestMethod]
     public void InitialStatusesOfTabsAreWellFormed()
     {
@@ -63,16 +89,22 @@
         Assert.AreEqual(FsmStepStatus.InProgress, wf?.States?[1].Status);
     }
 
+    /// <summary>
+    /// RULE: Guarded transitions from the current state whose
+    /// guard functions evaluate to true enable their destination
+    /// states
+    /// </summary>
+    
     [TestMethod]
     public void TrueGuardsEnableTargetTabs()
     {
-        cut = Render(@<TestWorkFlow @ref=theWorkFlow
+        cut = Render(@<TestWorkFlow @ref=testWorkFlow
                 FirstStepStatus="@FsmStepStatus.ToDo" 
                 SecondStepStatus="@FsmStepStatus.InProgress"
                 FromStep1Guard="@true"
                 testModel="@modelForTest" />
     );
-        wf = theWorkFlow?.testWorkFlow;
+        wf = testWorkFlow?.fsmWorkFlow;
 
         Func<bool>? when = wf?.States?[0].Transitions?[0].When;
         if (when != null)
@@ -83,33 +115,86 @@
         Assert.IsTrue(wf?.States?[1].Enabled, "SecondStep not enabled");
     }
 
+    /// <summary>
+    /// RULE: When firing events matching valid transitions from
+    /// the current state, those transitions are taken.
+    /// RULE: When taking transitions, the corresponding action
+    /// functions are invoked.
+    /// RULE: When firing events matching transitions back to
+    /// the same state, the state does not change.
+    /// RULE: When firing events matching transitions back to
+    /// the same state, the coresponding action functions are
+    /// invoked.
+    /// RULE: When executing transitions to target states, the
+    /// tab content changes to match the content of the target
+    /// state.
+    /// </summary>
+    
     [TestMethod]
     public void TransitionsCanBeTaken()
     {
-        cut = Render(@<TestWorkFlow @ref=theWorkFlow
+        cut = Render(@<TestWorkFlow @ref=testWorkFlow
               FirstStepStatus="@FsmStepStatus.ToDo"
               SecondStepStatus="@FsmStepStatus.InProgress"
               FromStep1Guard="@true"
               FromStep2Guard="@true"
               testModel="@modelForTest" />
     );
-        wf = theWorkFlow?.testWorkFlow;
+        wf = testWorkFlow?.fsmWorkFlow;
         MatchTab("p", "In step 1");
         wf?.Fire("StayInStep1");
-        Assert.AreEqual(" From Step 1", theWorkFlow?.testModel);
+        Assert.AreEqual(" From Step 1", testWorkFlow?.testModel);
         wf?.Fire("ToStep2");
         Assert.AreEqual(" From Step 1 From Step 1", 
-        theWorkFlow?.testModel);
+            testWorkFlow?.testModel);
         MatchTab("p", "In step 2");
         wf?.Fire("StayInStep2");
         Assert.AreEqual(" From Step 1 From Step 1 From Step 2", 
-        theWorkFlow?.testModel);
+            testWorkFlow?.testModel);
         wf?.Fire("ToStep1");
         MatchTab("p", "In step 1");
         Assert.AreEqual(" From Step 1 From Step 1 From Step 2 From Step 2", 
-        theWorkFlow?.testModel);
+            testWorkFlow?.testModel);
     } 
 
+    /// <summary>
+    /// RULE: A valid event name not valid for the current
+    /// state is ignored when an event with that name is fired.
+    /// RULE: An invalid event name is ignored when an event
+    /// with that name is fired.
+    /// RULE: Invalid events do not change the current tab
+    /// contents.
+    /// RULE: Invalid events cause no transition action function
+    /// to be executed.
+    /// </summary>
+    
+    [TestMethod]
+    public void InvalidEventIsIgnored()
+    {
+        cut = Render(@<TestWorkFlow @ref=testWorkFlow
+              FirstStepStatus="@FsmStepStatus.ToDo"
+              SecondStepStatus="@FsmStepStatus.InProgress"
+              FromStep1Guard="@true"
+              FromStep2Guard="@true"
+              testModel="@modelForTest" />
+    );
+        wf = testWorkFlow?.fsmWorkFlow;
+        wf?.Fire("ToStep1");
+        Assert.AreEqual("", testWorkFlow?.testModel);
+        MatchTab("p", "In step 1");
+        wf?.Fire("Gobbledegook");
+        Assert.AreEqual("", testWorkFlow?.testModel);
+        MatchTab("p", "In step 1");
+    }
+
+    /// <summary>
+    /// Helper method for validating target tab contents
+    /// </summary>
+    /// <param name="cssSel">The CSS selector for the element
+    ///  in the tab that we are validating</param>
+    /// <param name="content">The HTML we are comparing the
+    ///  element contents against</param>
+    
     private void MatchTab(string cssSel, string content)
     {
         cut?.WaitForState(() => cut.Find(cssSel).TextContent == content);

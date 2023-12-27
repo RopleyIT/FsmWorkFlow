@@ -3,7 +3,7 @@
 @using FsmWorkFlowUI.Data
 @using FsmWorkFlowUI.Pages
 @namespace FsmBlazorTests
-<FsmWorkFlow Model="@testModel" @ref=testWorkFlow>
+<FsmWorkFlow Model="@testModel" @ref=fsmWorkFlow>
     <FsmStep Name="FirstStep" Status="@FirstStepStatus">
         <FsmEvent On="ToStep2"
                   When="@(()=>FromStep1Guard??false)"
@@ -39,7 +39,7 @@
     [Parameter]
     public bool? FromStep2Guard { get; set; }
 
-    public FsmWorkFlow? testWorkFlow { get; set; }
+    public FsmWorkFlow? fsmWorkFlow { get; set; }
     void FromStep1Action() { testModel += " From Step 1"; }
     void FromStep2Action() { testModel += " From Step 2"; }
 }
