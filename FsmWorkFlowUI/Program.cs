@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<ExampleService>();
+builder.Services.AddSingleton<IAuthService>(new AuthService());
 builder.Services.AddRadzenComponents();
 var app = builder.Build();
 
