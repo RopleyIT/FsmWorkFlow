@@ -24,15 +24,16 @@ Each time a transition takes place, some action can be taken by the component. T
 
 In summary then, a workflow consists of a set of states, usually followed in a standard sequence, but where the sequence can be varied. Each state corresponds to a displayed tab area and a selected tab at the top of the workflow control. Navigation between tabs is caused either by clicking any tabs that are enabled, or explicitly by wiring up a button within the body of a tab. Control over the routes through the set of states is maintained by guard conditions evaluable at each step of the workflow.
 
-## Programming a workflow
+### Programming a workflow
 To use the workflow components you will need the FsmWorkFlowUI project added to your solution. At present, this has not been rehomed in a standalone Blazor component library.
 
 To create an application-specific workflow of your own, create a new .razor component or page and add it to your project. For example, if we were trying to create the login workflow of the previous diagram, we might create a SimpleLogin.razor page.
 
-To place a workflow into the page, we need to add references to the workflow component itself, and then appropriate using statements in the Blazor files that consume the workflow component. At the top of your new Blazor page (assuming the references have been added) place the following using statements:
+To place a workflow into the page, we need to add references to the workflow component itself, and then appropriate using statements in the Blazor files that consume the workflow component. We also are going to make use of a simple authentication service, and therefore need to inject it as a dependency into the page. At the top of your new Blazor page (assuming the references have been added) place the following using statements:
 
 ```
 @using FsmWorkFlowUI.Components
+@inject IAuthService authService
 ```
 
 Choose the position in the page where you would like the workflow to appear, and use the following top-level tags to create the workflow:
@@ -57,6 +58,8 @@ Next we are going to add some steps to the workflow, as shown in the previous di
     <FsmStep Name="Logged in options"> </FsmStep>
 </FsmWorkFlow>
 ```
+
+### Events and transitions between steps
 We are now going to add some navigation between the steps of the workflow. Add a transition from the first to the second step by including an `FsmEvent` element between the opening and closing tags of the first state:
 
 ```
@@ -68,7 +71,7 @@ We are now going to add some navigation between the steps of the workflow. Add a
     <FsmStep Name="Logged in options"> </FsmStep>
 </FsmWorkFlow>
 ```
-We also need to provide a function called `UserNameTyped` that will return true when the user ahs typed their name into a text box on the workflow. We don't have the text box yet, but we can at least allocate a variable that will hold the typed name in the future. Add the following two lines of code to the `@code { ... }` section:
+We also need to provide a function called `UserNameTyped` that will return true when the user has typed their name into a text box on the workflow. We don't have the text box yet, but we can at least allocate a variable that will hold the typed name in the future. Add the following two lines of code to the `@code { ... }` section:
 
 ```
     string? name;
@@ -104,4 +107,40 @@ The attributes of the `FsmEvent` element match the fields of the transitions on 
 
 If we complete all the remaining events for the three states in the workflow, they would look like the following. Note that the required guard functions and actions have also been added to the code section:
 
+```
+<FsmWorkFlow Model="@authToken" @ref=workFlow>
+    <FsmStep Name="Please login"> 
+        <FsmEvent On="Login" When="@UserNameTyped" Then="Password?" />
+        <FsmEvent On="Login" Do="@NeedAUserName" />
+    </FsmStep>
+    <FsmStep Name="Password?">
+        <FsmEvent On="Login" When="@PasswordValid" Do="@IssueAuthToken" Then="Logged in options" />
+        <FsmEvent On="Login" Do="@ShowLoginError" Then = "Please login" />
+    </FsmStep>
+    <FsmStep Name="Logged in options"> 
+        <FsmEvent On="Logout" Do="@RescindToken" Then="Please login" />
+    </FsmStep>
+</FsmWorkFlow>
+
+@code {
+    // Variables used in the markup
+    long authToken = 0;
+    FsmWorkFlow? workFlow;
+    string? name;
+    string? password;
+    string? error;
+
+    // Guard functions
+    bool PasswordValid() => authService.PasswordValid(name, password); 
+    bool UserNameTyped() => !string.IsNullOrWhiteSpace(name);
+
+    // Action functions
+    void IssueAuthToken() { authToken = authService.IssueKey(name, password); }
+    void ShowLoginError() { error = "Name or password invalid";  }
+    void NeedAUserName() { error = "Please provide a valid user name"; }
+    void RescindToken() { authToken = 0; }
+}
+```
+### Providing content for each tab
+So far we have only defined the steps in the workflow and the permitted transitions between them. Now for each of the tabs in the workflow, we need to provide some markup. This can either be done inline inside the `<FsmStep>` elements, or can be done using separate razor components referenced from the FsmSteps. Here we shall look at inline content first.
 

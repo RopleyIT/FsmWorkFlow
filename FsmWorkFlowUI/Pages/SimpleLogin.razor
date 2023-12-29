@@ -18,20 +18,22 @@
         <FsmEvent On="Logout" Do="@RescindToken" Then="Please login" />
     </FsmStep>
 </FsmWorkFlow>
+
 @code {
-    string? authToken = null;
+    // Variables used in the markup
+    long authToken = 0;
     FsmWorkFlow? workFlow;
     string? name;
     string? password;
     string? error;
 
     // Guard functions
-    bool PasswordValid() => name == password; // Ugh! Godd job it's only a demo!
+    bool PasswordValid() => authService.PasswordValid(name, password); 
     bool UserNameTyped() => !string.IsNullOrWhiteSpace(name);
 
     // Action functions
-    void IssueAuthToken() { authToken = "XYZZY"; }
+    void IssueAuthToken() { authToken = authService.IssueKey(name, password); }
     void ShowLoginError() { error = "Name or password invalid";  }
     void NeedAUserName() { error = "Please provide a valid user name"; }
-    void RescindToken() { authToken = null; }
+    void RescindToken() { authToken = 0; }
 }

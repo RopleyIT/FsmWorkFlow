@@ -3,6 +3,19 @@
     public interface IAuthService
     {
         /// <summary>
+        /// Given a login name and a password, perform a check to
+        /// see if these match valid login credentials. Note that
+        /// the implementation here is a placeholder (obviously!)
+        /// </summary>
+        /// <param name="name">The name of the person attempting
+        /// to authenticate</param>
+        /// <param name="password">The password they entered
+        /// </param>
+        /// <returns>True if the credentials are valid</returns>
+
+        bool PasswordValid(string? name, string? password);
+
+        /// <summary>
         /// Demo of an authentiation API in a service.
         /// Note that in practice, this would not be
         /// in the same service as the model API, and
@@ -12,7 +25,7 @@
         /// <param name="password">The password they typed</param>
         /// <returns>A key token for the user, or 0 if
         /// not authenticated</returns>
-        
+
         long IssueKey(string? name, string? password);
 
         /// <summary>

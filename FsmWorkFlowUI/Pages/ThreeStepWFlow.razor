@@ -5,6 +5,7 @@
 
 @inject NavigationManager navigationManager
 @inject ExampleService exampleService
+@inject IAuthService authService
 
 <h3>5-Step Analysis Workflow Example</h3>
 
@@ -39,8 +40,8 @@
             Then="Select Batch" />
         <FsmStepBody>
             <p>Please sign after checking the data supplied</p>
-            <p>Batch number: @model.BatchNumber</p>
-            <p>Analyte: @model.Analyte</p>
+            <p>Batch number: @model?.BatchNumber</p>
+            <p>Analyte: @model?.Analyte</p>
             <EditForm Model="@model" OnSubmit=@SignFirst>
                 <div class="form-group">
                     <label for="firstuser">Login name</label>
@@ -64,9 +65,9 @@
             Then="Select Batch" />
         <FsmStepBody>
             <p>Please counter-sign after checking the data supplied</p>
-            <p>Batch number: @model.BatchNumber</p>
-            <p>Analyte: @model.Analyte</p>
-            <p>First signer: @model.FirstSignature</p>
+            <p>Batch number: @model?.BatchNumber</p>
+            <p>Analyte: @model?.Analyte</p>
+            <p>First signer: @model?.FirstSignature</p>
             <EditForm Model="@model" OnSubmit=@SignSecond>
                 <div class="form-group">
                     <label for="seconduser">Login name</label>
@@ -82,10 +83,10 @@
     <FsmStep Name="Results">
         <FsmStepBody>
             <p>
-                Batch @model.BatchNumber analysed
-                successfully for @model.Analyte
+                Batch @model?.BatchNumber analysed
+                successfully for @model?.Analyte
             </p>
-            <p>Anaysis ID: @model.ResultId</p>
+            <p>Anaysis ID: @model?.ResultId</p>
             <button onclick=@(()=>navigationManager.NavigateTo("/"))>Done!</button>
         </FsmStepBody>
     </FsmStep>
@@ -115,7 +116,7 @@
 
         // Validate the credentials
 
-        model.FirstUserKey = exampleService.IssueKey
+        model.FirstUserKey = authService.IssueKey
             (model.FirstSignature, password);
         password = null;
 
@@ -133,7 +134,7 @@
 
         // Validate the credentials
 
-        model.SecondUserKey = exampleService.IssueKey
+        model.SecondUserKey = authService.IssueKey
             (model.SecondSignature, password);
         password = null;
 
@@ -153,11 +154,11 @@
 
     private bool ValidFirstSignature() 
         => ValidAnalyteAndBatch() 
-        && (exampleService.ValidUserKey(model?.FirstUserKey));
+        && (authService.ValidUserKey(model?.FirstUserKey));
 
     private bool ValidSecondSignature()
         => ValidFirstSignature()
-        && (exampleService.ValidUserKey(model?.SecondUserKey));
+        && (authService.ValidUserKey(model?.SecondUserKey));
 
     // Action functions on transitions (Do functions)
 
