@@ -117,13 +117,15 @@ public partial class FsmWorkFlow
     /// subsequent lookups of the state's name.
     /// </summary>
     /// <param name="e">The FsmEvent transition whose
-    ///  next step is required//</param>
+    ///  next step is required</param>
     /// <returns>The next step object, or null
     ///  if not found</returns>
 
     public FsmStep? NextStep(FsmEvent? e)
     {
-        if (e?.NextStep == null)
+        if(e == null) 
+            return null;
+        if (e.NextStep == null)
             e.NextStep = StepFromName(e.Then);
         return e.NextStep;
     }

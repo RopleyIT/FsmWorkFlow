@@ -197,8 +197,8 @@
     
     private void MatchTab(string cssSel, string content)
     {
-        cut?.WaitForState(() => cut.Find(cssSel).TextContent == content);
-        string tabContent = cut.Find("p").TextContent;
-        tabContent.MarkupMatches(content);
+        cut?.WaitForState(() => cut?.Find(cssSel)?.TextContent == content);
+        string? tabContent = cut?.Find("p")?.TextContent;
+        tabContent?.MarkupMatches(content);
     }
 }

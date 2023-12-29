@@ -27,32 +27,42 @@ In summary then, a workflow consists of a set of states, usually followed in a s
 ### Programming a workflow
 To use the workflow components you will need the FsmWorkFlowUI project added to your solution. At present, this has not been rehomed in a standalone Blazor component library.
 
-To create an application-specific workflow of your own, create a new .razor component or page and add it to your project. For example, if we were trying to create the login workflow of the previous diagram, we might create a SimpleLogin.razor page.
+To create an application-specific workflow of your own, create a new .razor component or page and add it to your project. For example, if we were trying to create the login workflow of the previous diagram, we might create a SimpleLogin.razor page. In the code example found in this repository, we have implemented the example code directly as the Index.razor page.
 
 To place a workflow into the page, we need to add references to the workflow component itself, and then appropriate using statements in the Blazor files that consume the workflow component. We also are going to make use of a simple authentication service, and therefore need to inject it as a dependency into the page. At the top of your new Blazor page (assuming the references have been added) place the following using statements:
 
 ```
 @using FsmWorkFlowUI.Components
+@using FsmWorkFlowUI.Data
 @inject IAuthService authService
+@page "/"
 ```
 
 Choose the position in the page where you would like the workflow to appear, and use the following top-level tags to create the workflow:
 
 ```
-<FsmWorkFlow Model="@authToken" @ref=workFlow>
+<FsmWorkFlow Model="@model" @ref=workFlow>
 </FsmWorkFlow>
 @code {
-    string? authToken = null;
+    // Variables used in the markup
+    LoginModel? model;
     FsmWorkFlow? workFlow;
+    string error = string.Empty;
+    protected override void OnInitialized()
+    {
+        model = authService.CreateLoginModel();
+    }
 }
 ```
 
 Note that we have included some attributes bound to variables in the code section. The `Model` attribute can be used to reference any data object that holds the state data in the workflow while we are moving through its steps. The `@ref` attribute is strongly typed, and is a reference to the underlying FsmWorkFlow object itself. This is useful shold you wish to look at the status of its steps, fire an event at it, or interrogate it to find out what step we are in, for example.
 
+In this case, we are using the specimen authentication service that has been injected into the page to get the model, which is an instance of the class LoginModel. The source code for these can be inspected in the Data folder of the FsmWorkFlowUI project.
+
 Next we are going to add some steps to the workflow, as shown in the previous diagram for the login workflow. Between the opening and closing `<FsmWorkFlow>` tags, add the steps as shown in the code below:
 
 ```
-<FsmWorkFlow Model="@authToken" @ref=workFlow>
+<FsmWorkFlow Model="@model" @ref=workFlow>
     <FsmStep Name="Please login"> </FsmStep>
     <FsmStep Name="Password?"> </FsmStep>
     <FsmStep Name="Logged in options"> </FsmStep>
@@ -63,7 +73,7 @@ Next we are going to add some steps to the workflow, as shown in the previous di
 We are now going to add some navigation between the steps of the workflow. Add a transition from the first to the second step by including an `FsmEvent` element between the opening and closing tags of the first state:
 
 ```
-<FsmWorkFlow Model="@authToken" @ref=workFlow>
+<FsmWorkFlow Model="@model" @ref=workFlow>
     <FsmStep Name="Please login"> 
         <FsmEvent On="Login" When="@UserNameTyped" Then="Password?" />
     </FsmStep>
@@ -74,8 +84,7 @@ We are now going to add some navigation between the steps of the workflow. Add a
 We also need to provide a function called `UserNameTyped` that will return true when the user has typed their name into a text box on the workflow. We don't have the text box yet, but we can at least allocate a variable that will hold the typed name in the future. Add the following two lines of code to the `@code { ... }` section:
 
 ```
-    string? name;
-    bool UserNameTyped() => !string.IsNullOrWhiteSpace(name);
+    bool UserNameTyped() => !string.IsNullOrWhiteSpace(model?.UserName);
 ```
 At this point, it would be helpful to describe the attributes of the FsmStep and FsmEvent elements. In the case of the FsmStep element the attributes are as follows:
 
@@ -108,7 +117,7 @@ The attributes of the `FsmEvent` element match the fields of the transitions on 
 If we complete all the remaining events for the three states in the workflow, they would look like the following. Note that the required guard functions and actions have also been added to the code section:
 
 ```
-<FsmWorkFlow Model="@authToken" @ref=workFlow>
+<FsmWorkFlow Model="@model" @ref=workFlow>
     <FsmStep Name="Please login"> 
         <FsmEvent On="Login" When="@UserNameTyped" Then="Password?" />
         <FsmEvent On="Login" Do="@NeedAUserName" />
@@ -124,23 +133,134 @@ If we complete all the remaining events for the three states in the workflow, th
 
 @code {
     // Variables used in the markup
-    long authToken = 0;
+    LoginModel? model;
     FsmWorkFlow? workFlow;
-    string? name;
-    string? password;
-    string? error;
+    string error = string.Empty;
+    protected override void OnInitialized()
+    {
+        model = authService.CreateLoginModel();
+    }
 
     // Guard functions
-    bool PasswordValid() => authService.PasswordValid(name, password); 
-    bool UserNameTyped() => !string.IsNullOrWhiteSpace(name);
+    bool PasswordValid() => authService.PasswordValid(model?.UserName, model?.Password);
+    bool UserNameTyped() => !string.IsNullOrWhiteSpace(model?.UserName);
 
     // Action functions
-    void IssueAuthToken() { authToken = authService.IssueKey(name, password); }
-    void ShowLoginError() { error = "Name or password invalid";  }
+    void IssueAuthToken() { model.AuthToken = authService.IssueKey(model?.UserName, model?.Password); }
+    void ShowLoginError() { error = "Name or password invalid"; }
     void NeedAUserName() { error = "Please provide a valid user name"; }
-    void RescindToken() { authToken = 0; }
+    void RescindToken() { model = authService.CreateLoginModel(); error = string.Empty; }
 }
 ```
+Some things to note about the event elements:
+1. Each FsmEvent element does not need to have unique Name attributes. However, they will need different When attributes so that different guard conditions can evaluate which transition to take. The guards are evaluated in the order they appear inside the paren FsmStep element, so don't put the guardless FsmEvent at the top of the list!
+2. Omission of a When attribute behaves as if the gueard function always evaluates to true. Therefore you can only have a single When-less FsmEvent for each event name.
+3. Omission of a Do attribute means no action function is invoked on the transition between steps.
+4. Omission of a Then attribute causes the current active step to remain the same. A 'Do' action function will still be invoked if one was identified in the FsmEvent.
 ### Providing content for each tab
-So far we have only defined the steps in the workflow and the permitted transitions between them. Now for each of the tabs in the workflow, we need to provide some markup. This can either be done inline inside the `<FsmStep>` elements, or can be done using separate razor components referenced from the FsmSteps. Here we shall look at inline content first.
+So far we have only defined the steps in the workflow and the permitted transitions between them. Now for each of the tabs in the workflow, we need to provide some markup. This can either be done inline inside the `<FsmStep>` elements, or can be done using separate razor components referenced from the FsmSteps. We shall look at inline content first.
+
+Add an FsmStepBody element beneath the FsmEvent elements inside the topmost FsmStep element. The FsmStepBody contains the markup we want to appear in the corresponding step of the workflow. In the example below we use a text entry box and a submit button to capture the user's name:
+
+```
+    <FsmStep Name="Please login"> 
+        <FsmEvent On="Login" When="@UserNameTyped" Then="Password?" />
+        <FsmEvent On="Login" Do="@NeedAUserName" />
+        <FsmStepBody>
+            <p>Please type your login name</p>
+            <EditForm Model="@model" OnSubmit=@ToPasswordStep>
+                <div class="form-group">
+                    <label for="username">Login name</label>
+                    <InputText @bind-Value="model.UserName" id="username" />
+                </div>
+                <input type="submit" class="btn btn-primary" value="Next" />
+            </EditForm>
+            <p style="color:red;">@error</p>
+        </FsmStepBody>
+    </FsmStep>
+```
+To fire events that will cause a transition to another step of the workflow, we use the `FsmWorkFlow.Fire(string eventName)` method. Since we used the `@ref` attribute to obtain a reference to the workflow, that is the object on which we invoke the `Fire` method. Add the following function to the `@code` section for the missing submit button event handler in the `EditForm`:
+
+```
+    // Transition functions
+    void ToPasswordStep() => workFlow?.Fire("Login");
+```
+Next we shall see how to put the content of a step into a different component instead of inline. First, let us create a component to capture the password. Create a LoginPassword.razor component and populate it with the following content:
+
+```
+<p>Please enter your password, then click 'Login'</p>
+    <div class="form-group">
+        <label for="passwordbox">Type password</label>
+        <InputText @bind-Value="@Pass" id="passwordbox" />
+    </div>
+    <button class="btn btn-primary" 
+        @onclick=@(()=>WorkFlow?.Fire("Login"))>Login</button>
+
+@code {
+    [Parameter] public FsmWorkFlow? WorkFlow { get; set; }
+
+    private string passwordTyped = string.Empty;
+
+    [Parameter] public string Pass 
+    { 
+        get => passwordTyped; 
+        set
+        {
+            if (value != passwordTyped)
+            {
+                passwordTyped = value;
+                PassChanged.InvokeAsync(value);
+            }
+        }
+    } 
+
+    [Parameter]
+    public EventCallback<string> PassChanged { get; set; }
+}
+```
+Things to note about the code above:
+1.  The combination of parameters `Pass` and `PassChanged` permits two-way binding in any parent component.
+2.  The parameter `WorkFlow` is necessary so that the different razor component is still able to access the workflow's methods and properties. For example, to transition to a different step, we still need to call the `Fire` method.
+3.  An alternative way to do this is the sharing of a model between several `<EditForm>` elements, one per step. To do this, the model would also either have to be passed in as a parameter, or retrieved from a service.
+
+We now need to refer to this razor component from the workflow. Back in the parent razor file, add a step body to the `"Password?"` step as follows:
+
+```
+        <FsmStepBody>
+            <LoginPassword WorkFlow="@workFlow" @bind-Pass="@model.Password" />
+        </FsmStepBody>
+```
+This ensures that the `LoginPassword` component receives the parent workflow object, and that the password string variable in the login model is two-way bound to the `Pass` and `PassChanged` parameters of the `LoginPassword` component.
+
+Lastly, we shall put some demo content into the body of the third step of the workflow. Be sure to include a button that will allow you to logout:
+
+```
+    <FsmStep Name="Logged in options"> 
+        <FsmEvent On="Logout" Do="@RescindToken" Then="Please login" />
+        <FsmStepBody>
+            <p>We are successfully logged in! Our authentication token is: @model.AuthToken</p>
+            <button class="btn btn-primary" 
+                @onclick=@(()=>workFlow?.Fire("Logout"))>Logout</button>
+        </FsmStepBody>
+    </FsmStep>
+```
+
+### Status feedback
+The tabs at the top of each step can be colour-coded to give feedback on whether they have been visited, completed, etc. This can be done by assigning one of the `FsmStepStatus` enum values to the Status parameter of the step, or by creating a function that computes its value. We shall add some helper functions to provide feedback in this example. Add the following functions to the bottom of the main page's `@code` segment:
+
+```
+    // Status functions
+    FsmStepStatus UserNameStatus() => UserNameTyped() ? FsmStepStatus.Done : FsmStepStatus.InProgress;
+    FsmStepStatus PasswordStatus() => PasswordValid() ? FsmStepStatus.Done : FsmStepStatus.InProgress;
+    FsmStepStatus LoggedInStatus() => model.AuthToken != 0 ? FsmStepStatus.Done : FsmStepStatus.Blocked;
+```
+Now we shall decorate the three `FsmStep` elements so that their statuses are set.
+
+For the `"Please login"` step, set the `Status` attribute to `@UserNameStatus()`.
+
+For the `"Password?"` step, set the attribute to `@PasswordStatus()`.
+
+For the `"Logged in options"` step, set the attribute to `@LoggedInStatus()`.
+
+
 

@@ -3,6 +3,14 @@
     public interface IAuthService
     {
         /// <summary>
+        /// Obtain a new instance of a data model to track data
+        /// entry through the login workflow
+        /// </summary>
+        /// <returns>A new empty login model</returns>
+
+        LoginModel CreateLoginModel();
+
+        /// <summary>
         /// Given a login name and a password, perform a check to
         /// see if these match valid login credentials. Note that
         /// the implementation here is a placeholder (obviously!)

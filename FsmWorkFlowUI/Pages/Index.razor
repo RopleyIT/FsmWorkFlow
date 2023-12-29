@@ -1,60 +1,73 @@
 ﻿@using FsmWorkFlowUI.Components
-@inject ILogger<Index> IndexLogger
+@using FsmWorkFlowUI.Data
+@inject IAuthService authService
 
 @page "/"
-
-<PageTitle>Index</PageTitle>
-
-<h1>Fsm WorkFlow Experiments</h1>
-
-<FsmWorkFlow @ref=myWorkFlow>
-    <FsmStep Name="StepOne" Status="@FsmStepStatus.ToDo">
-        <FsmEvent On="Whistle" Then="StepTwo"/>
-        <FsmEvent On="Scream" Then="StepThree"/>
+<h3>Simple Login Example</h3>
+<p>
+    This page sets up the simple login workflow as
+    described in the README.md documentation file.
+</p>
+<FsmWorkFlow Model="@model" @ref=workFlow>
+    <FsmStep Name="Please login" Status="@UserNameStatus()">
+        <FsmEvent On="Login" When="@UserNameTyped" Then="Password?" />
+        <FsmEvent On="Login" Do="@NeedAUserName" />
         <FsmStepBody>
-            <p>I am step 1</p>
-            <button @onclick=@(() => Fire("Whistle"))>Whistle</button>
-            <button @onclick=@(() => Fire("Scream"))>Scream</button>
+            <p>Please type your login name</p>
+            <EditForm Model="@model" OnSubmit=@ToPasswordStep>
+                <div class="form-group">
+                    <label for="username">Login name</label>
+                    <InputText @bind-Value="model.UserName" id="username" />
+                </div>
+                <input type="submit" class="btn btn-primary" value="Next" />
+            </EditForm>
+            <p style="color:red;">@error</p>
         </FsmStepBody>
     </FsmStep>
-    <FsmStep Name="StepTwo" Status="@FsmStepStatus.InProgress">
-        <FsmEvent On="Whistle" Then="StepOne"/>
-        <FsmEvent On="Scream" Then="StepThree"/>
+    <FsmStep Name="Password?" Status="@PasswordStatus()">
+        <FsmEvent On="Login" When="@PasswordValid" Do="@IssueAuthToken" Then="Logged in options" />
+        <FsmEvent On="Login" Do="@ShowLoginError" Then="Please login" />
         <FsmStepBody>
-            <p>I be step 2</p>
-            <button @onclick=@(() => Fire("Whistle"))>Whistle</button>
-            <button @onclick=@(() => Fire("Scream"))>Scream</button>
+            <LoginPassword WorkFlow="@workFlow" @bind-Pass="@model.Password" />
         </FsmStepBody>
     </FsmStep>
-    <FsmStep Name="StepThree" Status="@FsmStepStatus.Done">
-        <FsmEvent On="Bang" Then="StepTwo" />
+    <FsmStep Name="Logged in options" Status="@LoggedInStatus()">
+        <FsmEvent On="Logout" Do="@RescindToken" Then="Please login" />
         <FsmStepBody>
-            <p>Step 3 I am</p>
-            <button @onclick=@(() => Fire("Bang"))>Bang</button>
+            <p>We are successfully logged in! Our authentication token is: @model.AuthToken </p>
+            <button class="btn btn-primary"
+                    @onclick=@(()=>workFlow?.Fire("Logout"))>
+                Logout
+            </button>
         </FsmStepBody>
     </FsmStep>
 </FsmWorkFlow>
-<button @onclick="@showTree">Show tree</button>
-<p>@treeContent</p>
-@code
-{
-    FsmWorkFlow? myWorkFlow;
-    string treeContent = "";
 
-    public void showTree()
+@code {
+    // Variables used in the markup
+    LoginModel? model;
+    FsmWorkFlow? workFlow;
+    string error = string.Empty;
+    protected override void OnInitialized()
     {
-        IndexLogger.LogInformation("Showing tree");
-        treeContent = "";
-        if(myWorkFlow != null && myWorkFlow.States != null)
-            foreach(FsmStep step in myWorkFlow.States)
-            {
-                treeContent += step.Name + ": ";
-                if(step.Transitions != null)
-                    foreach (FsmEvent e in step.Transitions)
-                        treeContent += e.On + "->" + e.Then + " ";
-            }
+        model = authService.CreateLoginModel();
     }
 
-    public void Fire(string s)
-    => myWorkFlow?.Fire(s);
+    // Transition functions
+    void ToPasswordStep() => workFlow?.Fire("Login");
+
+    // Guard functions
+    bool PasswordValid() => authService.PasswordValid(model?.UserName, model?.Password);
+    bool UserNameTyped() => !string.IsNullOrWhiteSpace(model?.UserName);
+
+    // Action functions
+    void IssueAuthToken() { model.AuthToken = authService.IssueKey(model?.UserName, model?.Password); }
+    void ShowLoginError() { error = "Name or password invalid"; }
+    void NeedAUserName() { error = "Please provide a valid user name"; }
+    void RescindToken() { model = authService.CreateLoginModel(); error = string.Empty; }
+
+    // Status functions
+    FsmStepStatus UserNameStatus() => UserNameTyped() ? FsmStepStatus.Done : FsmStepStatus.InProgress;
+    FsmStepStatus PasswordStatus() => PasswordValid() ? FsmStepStatus.Done : FsmStepStatus.InProgress;
+    FsmStepStatus LoggedInStatus() => model.AuthToken != 0 ? FsmStepStatus.Done : FsmStepStatus.Blocked;
 }
