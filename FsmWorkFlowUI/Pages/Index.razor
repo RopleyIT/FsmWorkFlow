@@ -42,9 +42,19 @@
         </FsmStepBody>
     </FsmStep>
 </FsmWorkFlow>
+<h3>&nbsp;</h3>
+<h3>Modal dialog demo</h3>
+<button class="btn btn-primary" @onclick="() => dlgModal?.Show()">Click me!</button>
+
+<DlgModal @ref="@dlgModal" Title="Login error" OkText="OK" CancelText="">
+    <div class="row">
+        <p>Your login credentials were rubbish. Try again.</p>
+    </div>
+</DlgModal>
 
 @code {
     // Variables used in the markup
+    DlgModal? dlgModal { get; set; }
     LoginModel? model;
     FsmWorkFlow? workFlow;
     string error = string.Empty;
@@ -62,7 +72,11 @@
 
     // Action functions
     void IssueAuthToken() { model.AuthToken = authService.IssueKey(model?.UserName, model?.Password); }
-    void ShowLoginError() { error = "Name or password invalid"; }
+    void ShowLoginError() 
+    { 
+        error = "Name or password invalid";
+    }
+
     void NeedAUserName() { error = "Please provide a valid user name"; }
     void RescindToken() { model = authService.CreateLoginModel(); error = string.Empty; }
 

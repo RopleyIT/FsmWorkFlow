@@ -1,0 +1,115 @@
+﻿<div class="@modalClass" tabindex="-1" role="dialog" style="@modalDisplay">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Title</h5>
+                <button type="button" class="btn-close" data-dismiss="modal" 
+                    aria-label="Close" @onclick="CancelClicked">
+                </button>
+            </div>
+            <div class="modal-body">
+                @ChildContent
+            </div>
+            <div class="modal-footer">
+                @if (!string.IsNullOrWhiteSpace(OkText))
+                {
+                    <button type="button" class="btn btn-primary" @onclick=OkClicked>@OkText</button>
+                }
+                @if (!string.IsNullOrWhiteSpace(CancelText))
+                {
+                    <button type="button" class="btn btn-secondary" @onclick=CancelClicked>@CancelText</button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (showBackdrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    /*
+    Based on modal dialog component as described by Steven Giesel in his article:
+    https://steven-giesel.com/blogPost/5fc5b957-d62e-40e6-b0c4-f2a0df5c8aa1
+    Modified to include customisable OK and cancel buttons, and to tidy up
+    inline CSS parsing errors.
+    */
+
+    /// <summary>
+    /// The caption at the top of the dialog
+    /// </summary>
+
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>
+    /// The caption for the 'accept' button that usually
+    /// triggers some action on dialog closure. Set this to
+    /// null or empty to hide the accept button.
+    /// </summary>
+
+    [Parameter] public string? OkText { get; set; }
+
+    /// <summary>
+    /// Additional code to be executed when the accept button
+    /// is clicked. This will be executed immediately after
+    /// the dialog has been hidden.
+    /// </summary>
+
+    [Parameter] public EventCallback? OnOk { get; set; }
+
+    /// <summary>
+    /// The caption for the 'reject' button that usually
+    /// triggers some dismissal action on dialog closure.
+    /// Set this to null or empty to hide the button.
+    /// </summary>
+
+    [Parameter] public string? CancelText { get; set; } = "Cancel";
+
+    /// <summary>
+    /// Additional code to be executed when the cancel button
+    /// is clicked. This will be executed immediately after
+    /// the dialog has been hidden. Note this is also executed
+    /// if the 'X' close dialog icon in the top right corner
+    /// of the dialog is clicked.
+    /// </summary>
+
+    [Parameter] public EventCallback? OnCancel { get; set; }
+
+    void CancelClicked()
+    {
+        Hide();
+        OnCancel?.InvokeAsync();
+    }
+
+    void OkClicked()
+    {
+        Hide();
+        OnOk?.InvokeAsync();
+    }
+
+    /// <summary>
+    /// The body content between the opening and closing tags
+    /// </summary>
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    string modalDisplay = "display:none; overflow-y: auto;";
+    string modalClass = "modal";
+    bool showBackdrop = false;
+
+    public void Show()
+    {
+        modalDisplay = "display:block; overflow-y: auto;";
+        modalClass = "modal show";
+        showBackdrop = true;
+    }
+
+    public void Hide()
+    {
+        modalDisplay = "display:none; overflow-y: auto;";
+        modalClass = "modal";
+        showBackdrop = false;
+    }
+}
