@@ -26,25 +26,33 @@
     </FsmStep>
     <FsmStep Name="Password?" Status="@PasswordStatus()">
         <FsmEvent On="Login" When="@PasswordValid" Do="@IssueAuthToken" Then="Logged in options" />
-        <FsmEvent On="Login" Do="@ShowLoginError" Then="Please login" />
+        <FsmEvent On="Login" Do="@ShowLoginError" Then="Bad credentials" />
         <FsmStepBody>
             <LoginPassword WorkFlow="@workFlow" @bind-Pass="@model.Password" />
+        </FsmStepBody>
+    </FsmStep>
+    <FsmStep Hidden=true Name="Bad credentials">
+        <FsmEvent On="Logout" Do="@RescindToken" Then="Please login" />
+        <FsmStepBody>
+            <DlgModal Show=true OkText="OK" 
+                OnOk=@(()=>workFlow?.Fire("$back"))
+                OnCancel=@(()=>workFlow?.Fire("Logout"))>
+                <p>Your user name or password were not valid</p>
+            </DlgModal>
         </FsmStepBody>
     </FsmStep>
     <FsmStep Name="Logged in options" Status="@LoggedInStatus()">
         <FsmEvent On="Logout" Do="@RescindToken" Then="Please login" />
         <FsmStepBody>
-            <p>We are successfully logged in! Our authentication token is: @model.AuthToken </p>
-            <button class="btn btn-primary"
-                    @onclick=@(()=>workFlow?.Fire("Logout"))>
-                Logout
-            </button>
+            <p>Congratulations! you are logged in. The world is your oyster! 
+                When you are finished, click the button below to log out.</p>
+            <button class="btn btn-primary" @onclick=@(()=>workFlow?.Fire("Logout"))>Log out</button>
         </FsmStepBody>
     </FsmStep>
 </FsmWorkFlow>
 <h3>&nbsp;</h3>
 <h3>Modal dialog demo</h3>
-<button class="btn btn-primary" @onclick="() => dlgModal?.Show()">Click me!</button>
+<button class="btn btn-primary" @onclick="() => dlgModal.Show = true">Click me!</button>
 
 <DlgModal @ref="@dlgModal" Title="Login error" OkText="OK" CancelText="">
     <div class="row">

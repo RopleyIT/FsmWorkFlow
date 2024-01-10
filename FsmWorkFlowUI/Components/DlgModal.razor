@@ -3,9 +3,12 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">@Title</h5>
-                <button type="button" class="btn-close" data-dismiss="modal" 
+                @if (!string.IsNullOrWhiteSpace(CancelText))
+                {
+                    <button type="button" class="btn-close" data-dismiss="modal" 
                     aria-label="Close" @onclick="CancelClicked">
-                </button>
+                    </button>
+                }
             </div>
             <div class="modal-body">
                 @ChildContent
@@ -24,7 +27,7 @@
     </div>
 </div>
 
-@if (showBackdrop)
+@if (Show)
 {
     <div class="modal-backdrop fade show"></div>
 }
@@ -57,7 +60,7 @@
     /// the dialog has been hidden.
     /// </summary>
 
-    [Parameter] public EventCallback? OnOk { get; set; }
+    [Parameter] public EventCallback OnOk { get; set; }
 
     /// <summary>
     /// The caption for the 'reject' button that usually
@@ -65,7 +68,7 @@
     /// Set this to null or empty to hide the button.
     /// </summary>
 
-    [Parameter] public string? CancelText { get; set; } = "Cancel";
+    [Parameter] public string? CancelText { get; set; } = "Close";
 
     /// <summary>
     /// Additional code to be executed when the cancel button
@@ -75,18 +78,25 @@
     /// of the dialog is clicked.
     /// </summary>
 
-    [Parameter] public EventCallback? OnCancel { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    /// <summary>
+    /// Set to launch the dialog in shown mode.
+    /// Reset to hide the dialog.
+    /// </summary>
+
+    [Parameter] public bool Show { get; set; } = false;
 
     void CancelClicked()
     {
-        Hide();
-        OnCancel?.InvokeAsync();
+        Show = false;
+        OnCancel.InvokeAsync();
     }
 
     void OkClicked()
     {
-        Hide();
-        OnOk?.InvokeAsync();
+        Show = false;
+        OnOk.InvokeAsync();
     }
 
     /// <summary>
@@ -95,21 +105,7 @@
 
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    string modalDisplay = "display:none; overflow-y: auto;";
-    string modalClass = "modal";
-    bool showBackdrop = false;
-
-    public void Show()
-    {
-        modalDisplay = "display:block; overflow-y: auto;";
-        modalClass = "modal show";
-        showBackdrop = true;
-    }
-
-    public void Hide()
-    {
-        modalDisplay = "display:none; overflow-y: auto;";
-        modalClass = "modal";
-        showBackdrop = false;
-    }
+    string modalDisplay => "display:" + (Show ? "block":"none") 
+        + "; overflow-y: auto;";
+    string modalClass => "modal" + (Show ? " show":"");
 }

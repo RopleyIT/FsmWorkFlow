@@ -1,10 +1,10 @@
-﻿<div class=@StepClass @onclick="FireDefault">
-@*     <RadzenIcon Icon="@Icon"
-                IconColor="@IconColour" />
- *@                
- <FsmStepNum Colour="@StepColour" StepNum="@StepNumber"/>
- <span class="padleft" style="@TextStyle">@Name</span>
-</div>
+﻿@if (!Hidden)
+{
+    <div class=@StepClass @onclick="FireDefault">
+        <FsmStepNum Colour="@StepColour" StepNum="@StepNumber"/>
+        <span class="padleft" style="@TextStyle">@Name</span>
+    </div>
+}
 <CascadingValue Value="this">
     @ChildContent
 </CascadingValue>

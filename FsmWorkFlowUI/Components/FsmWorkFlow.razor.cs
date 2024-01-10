@@ -59,6 +59,14 @@ public partial class FsmWorkFlow
     }
 
     /// <summary>
+    /// The previous state is captured for a transition
+    /// labelled with the "$back" pseudo-value for the
+    /// "Then" attribute
+    /// </summary>
+    
+    private FsmStep? PreviousState { get; set; }
+
+    /// <summary>
     /// Given the name of a state, find the actual
     /// FsmStep object that represents that state
     /// </summary>
@@ -193,6 +201,18 @@ public partial class FsmWorkFlow
     
     public void Fire(string eventName)
     {
+        // Deal with the "$back" transition. Technically
+        // this is not a valid transition for the workflow,
+        // but is used for implementing modal dialogs, or
+        // for returning from hidden states to their
+        // predecessor state.
+
+        if(eventName == "$back")
+        {
+            ActiveState = PreviousState;
+            return;
+        }
+
         // Is this a valid event for the current state?
         // If so, find the transition object for it.
 
@@ -216,7 +236,10 @@ public partial class FsmWorkFlow
             validEvent.Do?.Invoke();
             FsmStep? nextStep = NextStep(validEvent);
             if (nextStep != null)
+            {
+                PreviousState = ActiveState;
                 ActiveState = nextStep;
+            }
         }
     }
 

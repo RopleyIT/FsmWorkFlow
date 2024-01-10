@@ -6,6 +6,13 @@ namespace FsmWorkFlowUI.Components;
 
 public partial class FsmStep
 {
+    /// <summary>
+    /// Set to true for the step to not appear with a tab at the top.
+    /// Used for steps that implement modal dialogs or error messages.
+    /// </summary>
+    [Parameter]
+    public bool Hidden { get; set; } = false;
+
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
