@@ -7,7 +7,7 @@ Although there is a default expected sequence the user is expected to follow whe
 
 Because the navigational model is not linear, the actual set of workflow steps is implemented as a finite state machine. To understand how this works, we shall look at an example.
 
-## A login workflow
+### A login workflow
 The picture below represents a three-step workflow implementing a login process.
 
 ![Login state transition diagram](Docs/LoginWorkflow.svg)
@@ -91,7 +91,8 @@ At this point, it would be helpful to describe the attributes of the FsmStep and
 | Attribute | Type | Purpose |
 | ---       | ---  | ---     |
 | `Name` | `string?` | The unique name of this step in the workflow. Note that this is also used as the tab description, so should be readable and can include spaces. |
-| `Status` | `FsmStepStatus` | An `enum` giving a number of different status indications for the step. These apply colour highlighting to the tab header, and can be set dynamically while the workflow is running.|
+| `Status` | `FsmStepStatus` | An `enum` giving a number of different status indications for the step. These apply colour highlighting to the tab header, and can be set dynamically while the workflow is running. |
+| `Hidden` | `bool` | Set to true to hide this step from the set of tabs at the top of the workflow. Should be used sparingly, as this creates a mystery tab that has no clues on how to navigate to it. Used as part of the dialog mechanism. |
 
 The values of the FsmStepStatus enum are as follows:
 
@@ -112,7 +113,7 @@ The attributes of the `FsmEvent` element match the fields of the transitions on 
 | `On` | `string` | Gives a name to the event that must be fired for this transition to take place. |
 | `When` | `Func<bool>` | A function that computes the guard condition that must be true if this transition is to be taken. If omitted, the transition can always be taken when this event is fired. |
 | `Do` | `Action` | A void function that will be executed as the transition is taken. If omitted, no action is taken but the transition still happens. |
-| `Then` | `string` | Then name of the next state or step to transit to. |
+| `Then` | `string` | The name of the next state or step to transit to. Note that the state transition engine has a memory of one previous state. Using the value `"$back"` for this attribute value will move to the previous state, regardless of what that previous state was. This is provided for dialog support, and should not be used under normal workflow circumstances.|
 
 If we complete all the remaining events for the three states in the workflow, they would look like the following. Note that the required guard functions and actions have also been added to the code section:
 
@@ -154,9 +155,10 @@ If we complete all the remaining events for the three states in the workflow, th
 ```
 Some things to note about the event elements:
 1. Each FsmEvent element does not need to have unique Name attributes. However, they will need different When attributes so that different guard conditions can evaluate which transition to take. The guards are evaluated in the order they appear inside the paren FsmStep element, so don't put the guardless FsmEvent at the top of the list!
-2. Omission of a When attribute behaves as if the gueard function always evaluates to true. Therefore you can only have a single When-less FsmEvent for each event name.
+2. Omission of a When attribute behaves as if the guard function always evaluates to true. Therefore you can only have a single When-less FsmEvent for each event name.
 3. Omission of a Do attribute means no action function is invoked on the transition between steps.
 4. Omission of a Then attribute causes the current active step to remain the same. A 'Do' action function will still be invoked if one was identified in the FsmEvent.
+
 ### Providing content for each tab
 So far we have only defined the steps in the workflow and the permitted transitions between them. Now for each of the tabs in the workflow, we need to provide some markup. This can either be done inline inside the `<FsmStep>` elements, or can be done using separate razor components referenced from the FsmSteps. We shall look at inline content first.
 
@@ -262,5 +264,92 @@ For the `"Password?"` step, set the attribute to `@PasswordStatus()`.
 
 For the `"Logged in options"` step, set the attribute to `@LoggedInStatus()`.
 
+### Modal dialogs
 
+A modal dialog component has been added to the workflow library. This dialog doesn't work inside the workflow as it stands, because of the way in which the next tab is displayed. It is provided here as a convenience tool for other parts of your UI design. It is used internally within the `FsmDialog` component to provide dialogs within the workflow. The `FsmDialog` component will be described later. Here is some sample code that uses the dialog:
 
+```
+<button class="btn btn-primary" 
+        @onclick="() => dlgModal.Show = true">
+    Click me!
+</button>
+
+<DlgModal @ref="@dlgModal" Title="Date and time">
+        <p>The date and time are @(DateTime.Now.ToString())</p>
+</DlgModal>
+
+```
+
+The modal dialog here has a single button with a default caption of 'Close'. It is possible to have up to three buttons, and to register event callback functions back in the parent page that are invoked once the dialog has been hidden. Even the default 'Close' button can be renamed, and can have an event callback associated with it. The properties of the `DlgModal` component are described in the following table:
+
+| Property | Type | Purpose |
+| --- | --- | --- |
+| `Title` | `string?` | Provides the caption at the top of the dialog |
+| `OkText` | `string?` | The caption for the OK button. If left unset or empty, this button will not appear. |
+| `OnOk` | `EventCallback` | A void function to be invoked when the dialog has been dismissed after the OK button was clicked. |
+| `OtherText` | `string?` | The caption for the 'Other' button. If left unset or empty, this button will not appear. |
+| `OnOther` |  `EventCallback` | A void function to be invoked when the dialog has been dismissed after the 'Other' button was clicked. |
+| `CancelText` | `string?` | The caption for the cancel button. Caption defaults to 'Close' so that this button appears by default. Set explicitly to the empty string to hide this button. Note that the 'X' in the top right corner of the dialog is an alias for this button, and will appear and disappear depending on the visibility of the cancel button. |
+| `OnCancel` | `EventCallback` |  A void function to be invoked when the dialog has been dismissed after the 'Cancel' button was clicked. |
+
+Note that if a button caption is set but the corresponding even callback is not, the dialog will be hidden but nothing else will happen.
+
+Acknowledgement is given to Steven Giesel who provided an article in his blog on how to implement dialogs in Blazor. Although the code here has been altered somewhat, the original idea came from his article. The original blog post can be found [here](https://steven-giesel.com/blogPost/5fc5b957-d62e-40e6-b0c4-f2a0df5c8aa1).
+
+### Dialog steps in the workflow
+
+As well as supporting modal dialogs outside a workflow, there is an `FsmDialog` component that wraps up a workflow step in the style of a modal dialog box. This component being an alternative kind of `FsmStep` appears as an immediate child of the parent `FsmWorkflow` at any point an `FsmStep` might be placed. Note that you can have multiple `FsmDialog` elements, but as with `FsmStep` elements, they must each have a unique name.
+
+To show an example of this dialog at work, we are going to modify our prevous login workflow example.
+
+First, we shall remove the code that displayed an 'incorrect password' message in the "Password?" step. Remove the `Do=...` parameter from the second `FsmEvent` of the password step. Change its `Then=` parameter to refer to a step called "Bad credentials". Your step should now look like this:
+
+```
+    <FsmStep Name="Password?" Status="@PasswordStatus()">
+        <FsmEvent On="Login" When="@PasswordValid" Do="@IssueAuthToken" Then="Logged in options" />
+        <FsmEvent On="Login" Then="Bad credentials" />
+        <FsmStepBody>
+            <LoginPassword WorkFlow="@workFlow" @bind-Pass="@model.Password" />
+        </FsmStepBody>
+    </FsmStep>
+```
+
+Next we want to add another `FsmEvent` so that we don't get stuck in the password step if we have forgottem our password:
+
+```
+    <FsmStep Name="Password?" Status="@PasswordStatus()">
+        <FsmEvent On="Login" When="@PasswordValid" Do="@IssueAuthToken" Then="Logged in options" />
+        <FsmEvent On="Login" Then="Bad credentials" />
+        <FsmEvent On="StartAgain" Then="Please login" />
+        <FsmStepBody>
+            <LoginPassword WorkFlow="@workFlow" @bind-Pass="@model.Password" />
+        </FsmStepBody>
+    </FsmStep>
+```
+Lastly we shall add an `FsmDialog` as another step beneath this step as follows:
+
+```
+    <FsmDialog Name="Bad credentials" OkText="Start again" OnOk="StartAgain">
+        <p>
+            Your user name and password were not valid. Click 'Close' to
+            try a different password. Click 'Start again' to provide 
+            another user name and password.
+        </p>
+    </FsmDialog>
+```
+
+As with the modal dialog described earlier, this dialog has a default 'Close' button that brings you back to the password step. We have also added an OK button whose caption has been changed to "Start again" and that fires the "StartAgain" event once we have returned to the password step. 
+
+Hence you can set the `OnOk` property to any of the valid `On=` values of the previous state's list of `FsmEvent` elements. This is because dismissing the dialog temporarily jumps back to the previous state, then searches its events to select the transition to be fired.
+
+As for the modal dialog, there are up to three buttons on an `FsmDialog`, two of which can be customised in a similar way to the buttons on the modal dialog. The table below gives the details:
+
+| Property | Type | Purpose |
+| --- | --- | --- |
+| `Name` | `string?` | The caption to be used as the dialg title. This is also the name to be used in an `FsmEvent` after the `Then=` parameter to indicate which dialog should be invoked. |
+| `OkText` | `string?` | The caption for the OK button. Leave unset or empty to remove the button. |
+| `OnOk` | `string?` | The name of the event in the previous state that we want to fire once the dialog has been dismissed. |
+| `OtherText` | `string?` | The caption for the 'Other' button. Leave unset or empty to omit the button. |
+| `OnOther` | `string?` |The name of the event in the previous state that we want to fire once the dialog has been dismissed. |
+
+The one big difference is that the 'Close' button always exists, and always just returns you to the previous step. In most cases, this would be the only button you would need, leaving just the `Name=` property to be set so the dialog can be invoked.

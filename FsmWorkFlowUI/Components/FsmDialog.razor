@@ -1,0 +1,54 @@
+﻿<FsmStep Hidden=true Name=@Name>
+    <FsmStepBody>
+        <DlgModal Show=true 
+                  Title=@Name
+                  OnCancel=@(()=>HandleClick(null))
+                  OkText=@OkText
+                  OnOk=@(()=>HandleClick(OnOk))
+                  OtherText=@OtherText
+                  OnOther=@(()=>HandleClick(OnOther))>
+                @ChildContent
+        </DlgModal>
+    </FsmStepBody>
+</FsmStep>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// The parent workflow (state machine) to which
+    /// this dialog step belongs
+    /// </summary>
+
+    [CascadingParameter]
+    public FsmWorkFlow? FsmWorkFlow { get; set; }
+
+    /// <summary>
+    /// The name of this dialog step. Used for resolving
+    /// links between steps when building the FSM
+    /// data structures.
+    /// </summary>
+
+    [Parameter]
+    public string? Name { get; set; }
+
+    [Parameter]
+    public string? OkText { get; set; }
+
+    [Parameter]
+    public string? OnOk { get; set; }
+
+    [Parameter]
+    public string? OtherText { get; set; }
+
+    [Parameter]
+    public string? OnOther { get; set; }
+
+    void HandleClick(string? step)
+    {
+        FsmWorkFlow?.Fire("$back");
+        if (step != null)
+            FsmWorkFlow?.Fire(step);
+    }
+}

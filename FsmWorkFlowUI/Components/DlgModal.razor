@@ -18,6 +18,10 @@
                 {
                     <button type="button" class="btn btn-primary" @onclick=OkClicked>@OkText</button>
                 }
+                @if (!string.IsNullOrWhiteSpace(OtherText))
+                {
+                    <button type="button" class="btn btn-primary" @onclick=OtherClicked>@OtherText</button>
+                }
                 @if (!string.IsNullOrWhiteSpace(CancelText))
                 {
                     <button type="button" class="btn btn-secondary" @onclick=CancelClicked>@CancelText</button>
@@ -63,6 +67,22 @@
     [Parameter] public EventCallback OnOk { get; set; }
 
     /// <summary>
+    /// The caption for the extra button that usually
+    /// triggers some action on dialog closure. Set this to
+    /// null or empty to hide the accept button.
+    /// </summary>
+
+    [Parameter] public string? OtherText { get; set; }
+
+    /// <summary>
+    /// Additional code to be executed when the extra button
+    /// is clicked. This will be executed immediately after
+    /// the dialog has been hidden.
+    /// </summary>
+
+    [Parameter] public EventCallback OnOther { get; set; }
+
+    /// <summary>
     /// The caption for the 'reject' button that usually
     /// triggers some dismissal action on dialog closure.
     /// Set this to null or empty to hide the button.
@@ -97,6 +117,12 @@
     {
         Show = false;
         OnOk.InvokeAsync();
+    }
+
+    void OtherClicked()
+    {
+        Show = false;
+        OnOther.InvokeAsync();
     }
 
     /// <summary>

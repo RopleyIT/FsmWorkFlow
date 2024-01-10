@@ -26,38 +26,47 @@
     </FsmStep>
     <FsmStep Name="Password?" Status="@PasswordStatus()">
         <FsmEvent On="Login" When="@PasswordValid" Do="@IssueAuthToken" Then="Logged in options" />
-        <FsmEvent On="Login" Do="@ShowLoginError" Then="Bad credentials" />
+        <FsmEvent On="Login" Then="Bad credentials" />
+        <FsmEvent On="StartAgain" Then="Please login" />
         <FsmStepBody>
             <LoginPassword WorkFlow="@workFlow" @bind-Pass="@model.Password" />
         </FsmStepBody>
     </FsmStep>
-    <FsmStep Hidden=true Name="Bad credentials">
-        <FsmEvent On="Logout" Do="@RescindToken" Then="Please login" />
-        <FsmStepBody>
-            <DlgModal Show=true OkText="OK" 
-                OnOk=@(()=>workFlow?.Fire("$back"))
-                OnCancel=@(()=>workFlow?.Fire("Logout"))>
-                <p>Your user name or password were not valid</p>
-            </DlgModal>
-        </FsmStepBody>
-    </FsmStep>
+    <FsmDialog Name="Bad credentials" OkText="Start again" OnOk="StartAgain">
+        <p>
+            Your user name and password were not valid. Click 'Close' to
+            try a different password. Click 'Start again' to provide 
+            another user name and password.
+        </p>
+    </FsmDialog>
     <FsmStep Name="Logged in options" Status="@LoggedInStatus()">
         <FsmEvent On="Logout" Do="@RescindToken" Then="Please login" />
+        <FsmEvent On="TryDlg" Then="Test Dialog" />
         <FsmStepBody>
             <p>Congratulations! you are logged in. The world is your oyster! 
                 When you are finished, click the button below to log out.</p>
             <button class="btn btn-primary" @onclick=@(()=>workFlow?.Fire("Logout"))>Log out</button>
+            <button class="btn btn-secondary" @onclick=@(()=>workFlow?.Fire("TryDlg"))>Try dialog</button>
         </FsmStepBody>
     </FsmStep>
+    <FsmDialog Name="Test Dialog" OkText="Log out" OnOk="Logout">
+        <p>I am a dialog invoked while logged in. 
+        Click 'Close' to go back to the logged 
+        in options step. Click 'Log out' to 
+        logout and jump to the 'Please login'
+        step.
+        </p>
+    </FsmDialog>
 </FsmWorkFlow>
 <h3>&nbsp;</h3>
 <h3>Modal dialog demo</h3>
-<button class="btn btn-primary" @onclick="() => dlgModal.Show = true">Click me!</button>
+<button class="btn btn-primary" 
+        @onclick="() => dlgModal.Show = true">
+    Click me!
+</button>
 
-<DlgModal @ref="@dlgModal" Title="Login error" OkText="OK" CancelText="">
-    <div class="row">
-        <p>Your login credentials were rubbish. Try again.</p>
-    </div>
+<DlgModal @ref="@dlgModal" Title="Date and time">
+        <p>The date and time are @(DateTime.Now.ToString())</p>
 </DlgModal>
 
 @code {
