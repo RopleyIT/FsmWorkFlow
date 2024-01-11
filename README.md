@@ -278,6 +278,9 @@ A modal dialog component has been added to the workflow library. This dialog doe
         <p>The date and time are @(DateTime.Now.ToString())</p>
 </DlgModal>
 
+@code {
+    DlgModal? dlgModal { get; set; }
+    . . .
 ```
 
 The modal dialog here has a single button with a default caption of 'Close'. It is possible to have up to three buttons, and to register event callback functions back in the parent page that are invoked once the dialog has been hidden. Even the default 'Close' button can be renamed, and can have an event callback associated with it. The properties of the `DlgModal` component are described in the following table:
