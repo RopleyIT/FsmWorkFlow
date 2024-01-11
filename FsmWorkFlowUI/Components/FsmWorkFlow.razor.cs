@@ -30,6 +30,26 @@ public partial class FsmWorkFlow
     public RenderFragment? ChildContent { get; set; }
 
     /// <summary>
+    /// The name of the step to jump to if an exception is
+    /// fired while executing a transition between steps.
+    /// Usually this would be an FsmDialog name so that a
+    /// dialog is displayed revealing the error details. It
+    /// could potentially be an ordinary state, maybe with
+    /// the Hidden property set to true so that the error
+    /// is reported within the tab rectangle of the workflow.
+    /// </summary>
+    
+    [Parameter]
+    public string? ErrDialog { get; set; }
+
+    /// <summary>
+    /// The exception most recently thrown. Only non-null
+    /// if the error dialog step is active.
+    /// </summary>
+    
+    public Exception? CaughtException { get; set; }
+
+    /// <summary>
     /// The set of steps in this workflow, or states
     /// in this finite state machine
     /// </summary>
@@ -201,44 +221,71 @@ public partial class FsmWorkFlow
     
     public void Fire(string eventName)
     {
-        // Deal with the "$back" transition. Technically
-        // this is not a valid transition for the workflow,
-        // but is used for implementing modal dialogs, or
-        // for returning from hidden states to their
-        // predecessor state.
-
-        if(eventName == "$back")
+        try
         {
-            ActiveState = PreviousState;
-            return;
-        }
+            CaughtException = null;
 
-        // Is this a valid event for the current state?
-        // If so, find the transition object for it.
+            // Deal with the "$back" transition. Technically
+            // this is not a valid transition for the workflow,
+            // but is used for implementing modal dialogs, or
+            // for returning from hidden states to their
+            // predecessor state.
 
-        IEnumerable<FsmEvent> transitions 
-            = EventsFromName(eventName);
-        if (!transitions.Any())
-            return;
-
-        // Check the guard conditions in the order the events
-        // were listed to find the first permitted transition 
-        // with this event name for the current step
-
-        FsmEvent? validEvent = transitions.FirstOrDefault
-            (e => e.When == null || e.When());
-
-        // If an event was found, execute the action associated
-        // with the transition, then jump to the new state
-
-        if (validEvent != null)
-        {
-            validEvent.Do?.Invoke();
-            FsmStep? nextStep = NextStep(validEvent);
-            if (nextStep != null)
+            if (eventName == "$back")
             {
+                ActiveState = PreviousState;
+                return;
+            }
+
+            // Is this a valid event for the current state?
+            // If so, find the transition object for it.
+
+            IEnumerable<FsmEvent> transitions
+                = EventsFromName(eventName);
+            if (!transitions.Any())
+                return;
+
+            // Check the guard conditions in the order the events
+            // were listed to find the first permitted transition 
+            // with this event name for the current step
+
+            FsmEvent? validEvent = transitions.FirstOrDefault
+                (e => e.When == null || e.When());
+
+            // If an event was found, execute the action associated
+            // with the transition, then jump to the new state
+
+            if (validEvent != null)
+            {
+                validEvent.Do?.Invoke();
+                FsmStep? nextStep = NextStep(validEvent);
+                if (nextStep != null)
+                {
+                    PreviousState = ActiveState;
+                    ActiveState = nextStep;
+                }
+            }
+        }
+        catch(Exception ex) 
+        {
+            // When an unexpected exception occurs, we show
+            // a dialog that has been nominated and designed
+            // by the developer. It is housed in an FsmDialog
+            // whose name is referenced by the ErrDialog
+            // property of this FsmWorkFlow. On cancellation of
+            // that dialog, the workflow attempts to return to
+            // the state it was in before the exception was
+            // thrown. When in the error dialog, the exception
+            // object can be accessed via the CaughtException
+            // property of the parent workflow. Access this via
+            // the @ref parameter for the workflow.
+
+            FsmStep? errStep = StepFromName(ErrDialog);
+            if (errStep != null)
+            {
+                CaughtException = ex;
                 PreviousState = ActiveState;
-                ActiveState = nextStep;
+                ActiveState = errStep;
             }
         }
     }

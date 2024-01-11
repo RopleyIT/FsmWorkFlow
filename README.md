@@ -353,3 +353,65 @@ As for the modal dialog, there are up to three buttons on an `FsmDialog`, two of
 | `OnOther` | `string?` |The name of the event in the previous state that we want to fire once the dialog has been dismissed. |
 
 The one big difference is that the 'Close' button always exists, and always just returns you to the previous step. In most cases, this would be the only button you would need, leaving just the `Name=` property to be set so the dialog can be invoked.
+
+### Exception handling
+
+In the `When=` and the `Do=` properties of the `FsmEvent` elements, it is possible that the code you provide might throw an exception. You can do nothing, and have the exception handled by the parent page containing the workflow. However, if the exception can be survived, allowing the workflow to still be completed, we need a facility for catching the exceptions, reporting them in the workflow, and resuming the workflow if the user chooses.
+
+To provide this capability, we can add an extra `FsmDialog` to the workflow's list of steps. We customise its appearance to display the data from the exception we choose, and provide buttons and other input elements in the dialog to repair anything that caused the exception in the first place.
+
+The extra `FsmDialog` is named by the `ErrDialog=` property of the `FsmWorkFlow` and will be automatically jumped to when an exception occurs. We will now modify the login workflow example to demonstrate how to do this.
+
+Find the top line of the `FsmWorkFlow` element and add an `ErrDialog` property to it as follows:
+
+```
+<FsmWorkFlow Model="@model" @ref=workFlow ErrDialog="Unexpected Exception">
+```
+
+Next we need to add an extra step to the workflow that will be jumped to on an exception. In most cases this would be implemented as an `FsmDialog` rather than an `FsmStep`, but the latter is permitted. In the sample code below, this has been placed at the top of the workflow, but it can be placed anywhere that a step can appear:
+
+```
+<FsmWorkFlow Model="@model" @ref=workFlow ErrDialog="Unexpected Exception">
+    <FsmDialog Name="Unexpected Exception">
+        <p>
+            An exception was thrown. It's Message property was
+            '@(workFlow?.CaughtException?.Message)'.
+        </p>
+    </FsmDialog>
+    <FsmStep . . .
+```
+
+When the exception gets thrown, the exception object is placed into the `CaughtException` property of the workflow. As you can see in the code above, this property can be accessed via the `@ref` reference variable for the workflow. The `CaughtException` property is set to null except when an exception has been caught.
+
+We are next going to artificially trigger an exception from one of the steps, so that we can demonstrate the exception handling in action. Scroll down through the steps in the workflow until you find the "Logged in options" step. We shall add an extra transition to this step with a `Do=` action function that deliberately throws an exception:
+
+```
+    <FsmStep Name="Logged in options" Status="@LoggedInStatus()">
+        <FsmEvent On="Logout" Do="@RescindToken" Then="Please login" />
+        <FsmEvent On="TryDlg" Then="Test Dialog" />
+        <FsmEvent On="TryException" Do="@ThrowSomething" />
+```
+
+We also need to add the `ThrowSomething` function to the `@code` section of the file:
+
+```
+    // Action functions
+    void ThrowSomething() 
+    { 
+        throw new InvalidOperationException("The thrown exception message"); 
+    }
+```
+
+Lastly we need to add a button to the step body of the "Logged in options" step that fires the "TryException" event when clicked:
+
+```
+        <FsmStepBody>
+            <p>Congratulations! you are logged in. The world is your oyster! 
+                When you are finished, click the button below to log out.</p>
+            <button class="btn btn-primary" @onclick=@(()=>workFlow?.Fire("Logout"))>Log out</button>
+            <button class="btn btn-secondary" @onclick=@(()=>workFlow?.Fire("TryDlg"))>Try dialog</button>
+            <button class="btn btn-secondary" @onclick=@(()=>workFlow?.Fire("TryException"))>Try exception</button>
+        </FsmStepBody>
+```
+
+If you try to run the code, and manage to log in successfully, the 'Try exception' button should show the dialog with the 'Unexpected error' caption. On dismissing the dialog, it should return to the logged in options step of the workflow. 

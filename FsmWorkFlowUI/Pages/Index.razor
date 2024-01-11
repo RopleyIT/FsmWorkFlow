@@ -8,7 +8,13 @@
     This page sets up the simple login workflow as
     described in the README.md documentation file.
 </p>
-<FsmWorkFlow Model="@model" @ref=workFlow>
+<FsmWorkFlow Model="@model" @ref=workFlow ErrDialog="Unexpected Exception">
+    <FsmDialog Name="Unexpected Exception">
+        <p>
+            An exception was thrown. It's Message property was
+            '@(workFlow?.CaughtException?.Message)'.
+        </p>
+    </FsmDialog>
     <FsmStep Name="Please login" Status="@UserNameStatus()">
         <FsmEvent On="Login" When="@UserNameTyped" Then="Password?" />
         <FsmEvent On="Login" Do="@NeedAUserName" />
@@ -42,11 +48,13 @@
     <FsmStep Name="Logged in options" Status="@LoggedInStatus()">
         <FsmEvent On="Logout" Do="@RescindToken" Then="Please login" />
         <FsmEvent On="TryDlg" Then="Test Dialog" />
+        <FsmEvent On="TryException" Do="@ThrowSomething" />
         <FsmStepBody>
             <p>Congratulations! you are logged in. The world is your oyster! 
                 When you are finished, click the button below to log out.</p>
             <button class="btn btn-primary" @onclick=@(()=>workFlow?.Fire("Logout"))>Log out</button>
             <button class="btn btn-secondary" @onclick=@(()=>workFlow?.Fire("TryDlg"))>Try dialog</button>
+            <button class="btn btn-secondary" @onclick=@(()=>workFlow?.Fire("TryException"))>Try exception</button>
         </FsmStepBody>
     </FsmStep>
     <FsmDialog Name="Test Dialog" OkText="Log out" OnOk="Logout">
@@ -88,11 +96,17 @@
     bool UserNameTyped() => !string.IsNullOrWhiteSpace(model?.UserName);
 
     // Action functions
-    void IssueAuthToken() { model.AuthToken = authService.IssueKey(model?.UserName, model?.Password); }
-    void ShowLoginError() 
+    void ThrowSomething() 
     { 
-        error = "Name or password invalid";
+        throw new InvalidOperationException("The thrown exception message"); 
     }
+
+    void IssueAuthToken() { model.AuthToken = authService.IssueKey(model?.UserName, model?.Password); }
+    
+    // void ShowLoginError() 
+    // { 
+    //     error = "Name or password invalid";
+    // }
 
     void NeedAUserName() { error = "Please provide a valid user name"; }
     void RescindToken() { model = authService.CreateLoginModel(); error = string.Empty; }
