@@ -21,14 +21,13 @@
     /// as it is used in the base class to set up the
     /// test context by BUnit itself.
     /// </summary>
-    
+
     public void Arrange()
     {
         cut = Render(@<TestWorkFlow @ref=testWorkFlow
               FirstStepStatus="@FsmStepStatus.ToDo"
               SecondStepStatus="@FsmStepStatus.InProgress"
-              testModel="@modelForTest" />
-    );
+              testModel="@modelForTest" /> );
         wf = testWorkFlow?.fsmWorkFlow;
     }
 
@@ -56,15 +55,15 @@
     public void WorkFlowHasCorrectStatesAndTransitions()
     {
         Arrange();
-        Assert.AreEqual(2, wf?.States?.Count);
+        Assert.AreEqual(4, wf?.States?.Count);
         Assert.AreEqual("FirstStep", wf?.States?[0].Name);
         Assert.AreEqual("SecondStep", wf?.States?[1].Name);
-        Assert.AreEqual(2, wf?.States?[0].Transitions?.Count);
+        Assert.AreEqual(4, wf?.States?[0].Transitions?.Count);
         Assert.AreEqual("ToStep2", wf?.States?[0].Transitions?[0].On);
         Assert.AreEqual("StayInStep1", wf?.States?[0].Transitions?[1].On);
         Assert.AreEqual("SecondStep", wf?.States?[0].Transitions?[0].Then);
         Assert.AreEqual("FirstStep", wf?.States?[0].Transitions?[1].Then);
-        Assert.AreEqual(2, wf?.States?[1].Transitions?.Count);
+        Assert.AreEqual(4, wf?.States?[1].Transitions?.Count);
         Assert.AreEqual("ToStep1", wf?.States?[1].Transitions?[0].On);
         Assert.AreEqual("StayInStep2", wf?.States?[1].Transitions?[1].On);
         Assert.AreEqual("FirstStep", wf?.States?[1].Transitions?[0].Then);
@@ -184,6 +183,150 @@
         MatchTab("p", "In step 1");
         wf?.Fire("Gobbledegook");
         Assert.AreEqual("", testWorkFlow?.testModel);
+        MatchTab("p", "In step 1");
+    }
+
+    /// <summary>
+    /// RULE: Exception thrown by When= guard function navigates
+    /// to the ErrDialog FsmDialog step.
+    /// RULE: Dismissing the FSmDialog registered as the exception
+    /// dialog (ErrDialog) returns to the step prior to the
+    /// exception-throwing FsmEvent.
+    /// </summary>
+
+    [TestMethod]
+    public void ExceptionInGuardUsesErrDialog()
+    {
+        Arrange();
+        wf?.Fire("GuardException");
+        Assert.AreEqual("", testWorkFlow?.testModel);
+        MatchTab("p", "In unexpected error dialog");
+        Assert.IsTrue(wf?.ActiveState?.Hidden);
+        var buttons = cut?.FindAll("div.modal-footer > button");
+        Assert.AreEqual(3, buttons?.Count);
+        Assert.AreEqual("Close", buttons?[2].TextContent);
+        buttons?[2].Click(); // Click the close button
+        MatchTab("p", "In step 1");
+    }
+
+    /// <summary>
+    /// RULE: Exception thrown by Do= action function navigates
+    /// to the ErrDialog FsmDialog step.
+    /// RULE: Dismissing the FSmDialog registered as the exception
+    /// dialog (ErrDialog) returns to the step prior to the
+    /// exception-throwing FsmEvent.
+    /// </summary>
+
+    [TestMethod]
+    public void ExceptionInActionUsesErrDialog()
+    {
+        cut = Render(@<TestWorkFlow @ref=testWorkFlow
+              FirstStepStatus="@FsmStepStatus.ToDo"
+              SecondStepStatus="@FsmStepStatus.InProgress"
+              FromStep1Guard="@true"
+              FromStep2Guard="@true"
+              testModel="@modelForTest" />
+    );
+        wf = testWorkFlow?.fsmWorkFlow;
+        wf?.Fire("ToStep2");
+        wf?.Fire("ActionException");
+        MatchTab("p", "In unexpected error dialog");
+        Assert.IsTrue(wf?.ActiveState?.Hidden);
+        var buttons = cut?.FindAll("div.modal-footer > button");
+        Assert.AreEqual(3, buttons?.Count);
+        Assert.AreEqual("Close", buttons?[2].TextContent);
+        buttons?[2].Click(); // Click the close button
+        MatchTab("p", "In step 2");
+    }
+
+    /// <summary>
+    /// RULE: Clicking the OK button in the error dialog
+    /// FsmDialog navigates using the event name specified
+    /// in the OnOk property.
+    /// RULE: Clicking the Other button in the error dialog
+    /// FsmDialog navigates using the event name specified
+    /// in the OnOther property.
+    /// </summary>
+    
+    [TestMethod]
+    public void OkAndOtherButtonsInErorDialogNavigateCorrectly()
+    {
+        cut = Render(@<TestWorkFlow @ref=testWorkFlow
+              FirstStepStatus="@FsmStepStatus.ToDo"
+              SecondStepStatus="@FsmStepStatus.InProgress"
+              FromStep1Guard="@true"
+              FromStep2Guard="@true"
+              testModel="@modelForTest" />
+    );
+        wf = testWorkFlow?.fsmWorkFlow;
+        wf?.Fire("GuardException");
+        var buttons = cut?.FindAll("div.modal-footer > button");
+        Assert.AreEqual("OK", buttons?[0].TextContent);
+        buttons?[0].Click(); // Click the OK button
+        MatchTab("p", "In step 2");
+        wf?.Fire("ActionException");
+        buttons = cut?.FindAll("div.modal-footer > button");
+        Assert.AreEqual("Other", buttons?[1].TextContent);
+        buttons?[1].Click(); // Click the Other button
+        MatchTab("p", "In step 1");
+    }
+
+    /// <summary>
+    /// RULE: Explicit navigation from an
+    /// FsmEvent navigates to a dialog step.
+    /// RULE: Cancellation within a dialog
+    /// step navigates by default back to
+    /// the previous step.
+    /// </summary>
+    
+    [TestMethod]
+    public void CanDefaultNavigateThroughDialogStep()
+    {
+        cut = Render(@<TestWorkFlow @ref=testWorkFlow
+              FirstStepStatus="@FsmStepStatus.ToDo"
+              SecondStepStatus="@FsmStepStatus.InProgress"
+              FromStep1Guard="@true"
+              FromStep2Guard="@true"
+              testModel="@modelForTest" />
+    );
+        wf = testWorkFlow?.fsmWorkFlow;
+        wf?.Fire("ToDialogStep");
+        MatchTab("p", "In dialog step");
+        var button = cut?.Find("div.modal-header button");
+        Assert.IsNotNull(button);
+        button.Click();
+        MatchTab("p", "In step 1");
+    }
+
+    /// <summary>
+    /// RULE: The FsmDialog OK button fires the OnOk event
+    /// to navigate from the predecessor step via that event.
+    /// RULE: The FsmDialog Other button fires the OnOther event
+    /// to navigate from the predecessor step via that event.
+    /// </summary>
+   
+    [TestMethod]
+    public void CanNavigateThroughDialogStepButtons()
+    {
+        cut = Render(@<TestWorkFlow @ref=testWorkFlow
+              FirstStepStatus="@FsmStepStatus.ToDo"
+              SecondStepStatus="@FsmStepStatus.InProgress"
+              FromStep1Guard="@true"
+              FromStep2Guard="@true"
+              testModel="@modelForTest" />
+    );
+        wf = testWorkFlow?.fsmWorkFlow;
+        wf?.Fire("ToDialogStep");
+        MatchTab("p", "In dialog step");
+        var buttons = cut?.FindAll("div.modal-footer > button");
+        Assert.AreEqual("OK", buttons?[0].TextContent);
+        buttons?[0].Click(); // Click the OK button
+        MatchTab("p", "In step 2");
+        wf?.Fire("ToDialogStep");
+        MatchTab("p", "In dialog step");
+        buttons = cut?.FindAll("div.modal-footer > button");
+        Assert.AreEqual("Other", buttons?[1].TextContent);
+        buttons?[1].Click(); // Click the OK button
         MatchTab("p", "In step 1");
     }
 

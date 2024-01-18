@@ -3,12 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34221.43
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FsmWorkFlow", "FsmWorkFlow\FsmWorkFlow.csproj", "{DD7B2531-5949-4565-AE0A-68AAC43F21F8}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FsmWorkFlowTest", "FsmWorkFlowTest\FsmWorkFlowTest.csproj", "{D69618C7-4CAA-4A9F-A991-2F969527C692}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonStateWorkflow", "CommonStateWorkflow\CommonStateWorkflow.csproj", "{7DAF3018-7F39-4522-889C-E50EA9E555D2}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FsmWorkFlowUI", "FsmWorkFlowUI\FsmWorkFlowUI.csproj", "{FDCFA3AC-AF97-4055-A8E0-9FB9F66A8685}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FsmBlazorTests", "FsmBlazorTests\FsmBlazorTests.csproj", "{565BA3C7-A389-4444-836F-4990FE660AD9}"
@@ -25,18 +19,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{DD7B2531-5949-4565-AE0A-68AAC43F21F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DD7B2531-5949-4565-AE0A-68AAC43F21F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DD7B2531-5949-4565-AE0A-68AAC43F21F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DD7B2531-5949-4565-AE0A-68AAC43F21F8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D69618C7-4CAA-4A9F-A991-2F969527C692}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D69618C7-4CAA-4A9F-A991-2F969527C692}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D69618C7-4CAA-4A9F-A991-2F969527C692}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D69618C7-4CAA-4A9F-A991-2F969527C692}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7DAF3018-7F39-4522-889C-E50EA9E555D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7DAF3018-7F39-4522-889C-E50EA9E555D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7DAF3018-7F39-4522-889C-E50EA9E555D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7DAF3018-7F39-4522-889C-E50EA9E555D2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FDCFA3AC-AF97-4055-A8E0-9FB9F66A8685}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FDCFA3AC-AF97-4055-A8E0-9FB9F66A8685}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDCFA3AC-AF97-4055-A8E0-9FB9F66A8685}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -127,7 +127,7 @@ public partial class FsmWorkFlow
     /// <summary>
     /// From the list of transitions available in the
     /// current step, find those with the specified
-    /// event name. If noe are found, return an
+    /// event name. If none are found, return an
     /// empty enumerable.</summary>
     /// <param name="eventName">The name of the event
     ///  to find</param>

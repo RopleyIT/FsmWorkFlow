@@ -23,6 +23,7 @@
         // function in this [TestClass].
 
         Services.AddSingleton<ExampleService>();
+        Services.AddSingleton<IAuthService>(new AuthService());
 
         // First Act - For this batch of tests we will
         // always start with the page containing the

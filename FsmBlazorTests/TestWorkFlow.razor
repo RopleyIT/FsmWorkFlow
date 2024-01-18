@@ -3,7 +3,7 @@
 @using FsmWorkFlowUI.Data
 @using FsmWorkFlowUI.Pages
 @namespace FsmBlazorTests
-<FsmWorkFlow Model="@testModel" @ref=fsmWorkFlow>
+<FsmWorkFlow Model="@testModel" @ref=fsmWorkFlow ErrDialog="Unexpected Error">
     <FsmStep Name="FirstStep" Status="@FirstStepStatus">
         <FsmEvent On="ToStep2"
                   When="@(()=>FromStep1Guard??false)"
@@ -12,6 +12,10 @@
         <FsmEvent On="StayInStep1" 
                   Do="@FromStep1Action"
                   Then="FirstStep" />
+        <FsmEvent On="GuardException"
+                  When="@ThrowingGuard" />
+        <FsmEvent On="ToDialogStep"
+                  Then="Dialog step" />
         <FsmStepBody><p>In step 1</p></FsmStepBody>
     </FsmStep>
     <FsmStep Name="SecondStep" Status="@SecondStepStatus">
@@ -22,8 +26,20 @@
                   When=@(()=>FromStep2Guard??false)
                   Do="@FromStep2Action"
                   Then="SecondStep" />
+        <FsmEvent On="ActionException"
+                  Do="@ThrowingAction" />
+        <FsmEvent On="ToDialogStep"
+                  Then="Dialog step" />
         <FsmStepBody><p>In step 2</p></FsmStepBody>
     </FsmStep>
+    <FsmDialog Name="Dialog step" OkText="OK" OnOk="ToStep2"
+               OtherText="Other" OnOther="ToStep1" >
+        <p>In dialog step</p>
+    </FsmDialog>
+    <FsmDialog Name="Unexpected Error" OkText="OK" OnOk="ToStep2"
+               OtherText="Other" OnOther="ToStep1">
+        <p>In unexpected error dialog</p>
+    </FsmDialog>
 </FsmWorkFlow>
 
 @code
@@ -40,6 +56,8 @@
     public bool? FromStep2Guard { get; set; }
 
     public FsmWorkFlow? fsmWorkFlow { get; set; }
+    bool ThrowingGuard() { throw new Exception("Guard exception"); }
     void FromStep1Action() { testModel += " From Step 1"; }
     void FromStep2Action() { testModel += " From Step 2"; }
+    void ThrowingAction() { throw new Exception("Action exception"); }
 }
