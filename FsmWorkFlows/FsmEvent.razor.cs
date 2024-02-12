@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace FsmWorkFlowUI.Components;
+namespace FsmWorkFlows;
 
 public partial class FsmEvent
 {

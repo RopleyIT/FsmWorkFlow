@@ -1,15 +1,13 @@
 using FsmWorkFlowUI.Data;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using Radzen;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<ExampleService>();
-builder.Services.AddSingleton<IAuthService>(new AuthService());
-builder.Services.AddRadzenComponents();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ExampleService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

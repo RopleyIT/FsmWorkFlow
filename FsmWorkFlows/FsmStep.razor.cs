@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Radzen;
 using System.ComponentModel.Design;
 
-namespace FsmWorkFlowUI.Components;
+namespace FsmWorkFlows;
 
 public partial class FsmStep
 {
@@ -27,7 +26,7 @@ public partial class FsmStep
     /// The content container for the body of the
     /// tab that will appear beneath the step button
     /// </summary>
-    
+
     public ITab? StepBody { get; set; }
 
     /// <summary>
@@ -66,7 +65,7 @@ public partial class FsmStep
     /// reached it!
     /// </summary>
 
-    public bool Enabled 
+    public bool Enabled
         => Active() || SingleValidEventToHere != null;
 
     /// <summary>
@@ -76,7 +75,7 @@ public partial class FsmStep
     /// so that we can Fire(eventName) from the tab
     /// when clicked on.
     /// </summary>
-    
+
     public string? SingleValidEventToHere
     {
         get
@@ -95,8 +94,8 @@ public partial class FsmStep
     /// </summary>
     /// <returns>True if the current active step
     /// in the workflow</returns>
-    
-    public bool Active() 
+
+    public bool Active()
         => Name == FsmWorkFlow?.ActiveState?.Name;
 
     /// <summary>
@@ -112,7 +111,7 @@ public partial class FsmStep
     /// </summary>
     /// <param name="eventName">The name of the
     /// event to be fired</param>
-    
+
     public void Fire(string eventName)
         => FsmWorkFlow?.Fire(eventName);
 
@@ -120,7 +119,7 @@ public partial class FsmStep
     /// If there is a single valid event from
     /// the active state to this state, fire it
     /// </summary>
-    
+
     public void FireDefault()
     {
         string? toFire = SingleValidEventToHere;
@@ -135,14 +134,14 @@ public partial class FsmStep
         FsmWorkFlow?.States?.Add(this);
     }
 
-    private int StepNumber => FsmWorkFlow?.IndexOfStep(this)??0;
+    private int StepNumber => FsmWorkFlow?.IndexOfStep(this) ?? 0;
 
     /// <summary>
     /// Generate the CSS class to use based on the
     /// state of the step, e.g. selected, not selected
     /// </summary>
 
-    private string StepClass 
+    private string StepClass
         => Active() ? "wfactivestep" : "wfstep";
 
     private string Icon => Status switch

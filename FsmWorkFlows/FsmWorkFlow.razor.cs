@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace FsmWorkFlowUI.Components;
+namespace FsmWorkFlows;
 
 public partial class FsmWorkFlow
 {
@@ -15,7 +15,7 @@ public partial class FsmWorkFlow
     /// down at the FsmStepBody level in the hierarchy,
     /// just cast it to the expected type.
     /// </summary>
-    
+
     [Parameter]
     public object? Model { get; set; }
 
@@ -38,7 +38,7 @@ public partial class FsmWorkFlow
     /// the Hidden property set to true so that the error
     /// is reported within the tab rectangle of the workflow.
     /// </summary>
-    
+
     [Parameter]
     public string? ErrDialog { get; set; }
 
@@ -46,7 +46,7 @@ public partial class FsmWorkFlow
     /// The exception most recently thrown. Only non-null
     /// if the error dialog step is active.
     /// </summary>
-    
+
     public Exception? CaughtException { get; set; }
 
     /// <summary>
@@ -83,7 +83,7 @@ public partial class FsmWorkFlow
     /// labelled with the "$back" pseudo-value for the
     /// "Then" attribute
     /// </summary>
-    
+
     private FsmStep? PreviousState { get; set; }
 
     /// <summary>
@@ -102,10 +102,10 @@ public partial class FsmWorkFlow
     /// <param name="name">the name of the step to find</param>
     /// <returns>0 if step not found, 1-based index if
     /// found</returns>
-    
+
     public int IndexOfStep(string? name)
     {
-        if(string.IsNullOrWhiteSpace(name)) 
+        if (string.IsNullOrWhiteSpace(name))
             return 0;
         return IndexOfStep(StepFromName(name));
     }
@@ -116,10 +116,10 @@ public partial class FsmWorkFlow
     /// <param name="step">The step to find</param>
     /// <returns>0 if step not found, 1-based index if
     /// found</returns>
-    
+
     public int IndexOfStep(FsmStep? step)
     {
-        if(step == null || States == null) 
+        if (step == null || States == null)
             return 0;
         return 1 + States.IndexOf(step);
     }
@@ -151,7 +151,7 @@ public partial class FsmWorkFlow
 
     public FsmStep? NextStep(FsmEvent? e)
     {
-        if(e == null) 
+        if (e == null)
             return null;
         if (e.NextStep == null)
             e.NextStep = StepFromName(e.Then);
@@ -170,7 +170,7 @@ public partial class FsmWorkFlow
     /// <returns>The set of navigable events from which
     /// we might choose to navigate away from this
     /// step</returns>
-    
+
     public IEnumerable<FsmEvent> ValidTransitions(string eventName)
         => EventsFromName(eventName)
                 .Where(e => e.When == null || e.When());
@@ -194,7 +194,7 @@ public partial class FsmWorkFlow
     /// <param name="target">The destination step</param>
     /// <returns>The event object that yields this
     /// transition</returns>
-    
+
     public FsmEvent? SingleValidTransitionTo
         (FsmStep target)
     {
@@ -202,7 +202,7 @@ public partial class FsmWorkFlow
             return null;
         var targetTransitions
             = ActiveState.Transitions
-                .Where(e => e.Then != null 
+                .Where(e => e.Then != null
                 && e.Then == target.Name
                 && (e.When == null || e.When()))
                 .ToArray();
@@ -211,14 +211,14 @@ public partial class FsmWorkFlow
         else
             return null;
     }
-    
+
     /// <summary>
     /// Call this method from your code in the
     /// FsmStepBody to fire an event
     /// </summary>
     /// <param name="eventName">The name of the
     /// event you wish to trigger</param>
-    
+
     public void Fire(string eventName)
     {
         try
@@ -266,7 +266,7 @@ public partial class FsmWorkFlow
                 }
             }
         }
-        catch(Exception ex) 
+        catch (Exception ex)
         {
             // When an unexpected exception occurs, we show
             // a dialog that has been nominated and designed
@@ -298,7 +298,7 @@ public partial class FsmWorkFlow
     /// </summary>
     /// <param name="firstRender">True if this is the
     /// very first rendering of the component</param>
-    
+
     protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender && ShouldRender())

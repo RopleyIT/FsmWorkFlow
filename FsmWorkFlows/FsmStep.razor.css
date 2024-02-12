@@ -1,4 +1,7 @@
-﻿.wfactivestep, .wfstep {
+﻿body
+{
+}
+.wfactivestep, .wfstep {
     display: flex;
     align-items: center;
     height: 3rem;

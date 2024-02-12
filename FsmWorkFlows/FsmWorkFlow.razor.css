@@ -1,4 +1,7 @@
-﻿.workflow {
+﻿body
+{
+}
+.workflow {
     display: flex;
     flex-wrap: wrap;
     width: 100%;

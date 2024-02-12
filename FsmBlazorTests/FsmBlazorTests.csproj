@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FsmWorkFlows\FsmWorkFlows.csproj" />
     <ProjectReference Include="..\FsmWorkFlowUI\FsmWorkFlowUI.csproj" />
   </ItemGroup>
 

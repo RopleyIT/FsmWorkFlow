@@ -2,6 +2,8 @@
 @using FsmWorkFlowUI.Components
 @using FsmWorkFlowUI.Data
 @using FsmWorkFlowUI.Pages
+@using FsmWorkFlows
+
 @namespace FsmBlazorTests
 <FsmWorkFlow Model="@testModel" @ref=fsmWorkFlow ErrDialog="Unexpected Error">
     <FsmStep Name="FirstStep" Status="@FirstStepStatus">

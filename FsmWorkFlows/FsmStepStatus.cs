@@ -1,10 +1,10 @@
-﻿namespace FsmWorkFlowUI.Components
+﻿namespace FsmWorkFlows
 {
     /// <summary>
     /// Enum used to choose the icon and colour
     /// for the steps in the workflow
     /// </summary>
-    
+
     public enum FsmStepStatus
     {
         None = 0,           // Not set to anything

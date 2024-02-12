@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace FsmWorkFlowUI.Components;
+namespace FsmWorkFlows;
 
 /// <summary>
 /// Class to contain the actual content of the currently
@@ -16,7 +16,7 @@ public partial class FsmStepBody
     /// content can be extracted and injected into
     /// the body of the workflow control
     /// </summary>
-   
+
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
@@ -35,7 +35,7 @@ public partial class FsmStepBody
     /// so that it can be painted when this is the
     /// selected step
     /// </summary>
-    
+
     protected override void OnInitialized()
     {
         if (Step != null)
@@ -52,7 +52,7 @@ public partial class FsmStepBody
     /// generic arguments to all the classes down the
     /// hierarchy.
     /// </summary>
-    
+
     public object? Model
         => Step?.FsmWorkFlow?.Model;
 

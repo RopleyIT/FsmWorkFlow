@@ -5,8 +5,8 @@
                 <h5 class="modal-title">@Title</h5>
                 @if (!string.IsNullOrWhiteSpace(CancelText))
                 {
-                    <button type="button" class="btn-close" data-dismiss="modal" 
-                    aria-label="Close" @onclick="CancelClicked">
+                    <button type="button" class="btn-close" data-dismiss="modal"
+                            aria-label="Close" @onclick="CancelClicked">
                     </button>
                 }
             </div>
@@ -131,7 +131,7 @@
 
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    string modalDisplay => "display:" + (Show ? "block":"none") 
+    string modalDisplay => "display:" + (Show ? "block" : "none")
         + "; overflow-y: auto;";
-    string modalClass => "modal" + (Show ? " show":"");
+    string modalClass => "modal" + (Show ? " show" : "");
 }
