@@ -154,8 +154,8 @@ If we complete all the remaining events for the three states in the workflow, th
 }
 ```
 Some things to note about the event elements:
-1. Each FsmEvent element does not need to have unique Name attributes. However, they will need different When attributes so that different guard conditions can evaluate which transition to take. The guards are evaluated in the order they appear inside the paren FsmStep element, so don't put the guardless FsmEvent at the top of the list!
-2. Omission of a When attribute behaves as if the guard function always evaluates to true. Therefore you can only have a single When-less FsmEvent for each event name.
+1. Each FsmEvent element does not need to have unique Name attributes. However if they have identical names, they will need different When attributes so that different guard conditions can evaluate which transition to take. The guards are evaluated in the order they are listed inside the parent FsmStep element, so don't put the guardless FsmEvent at the top of the list!
+2. Omission of a When attribute behaves as if the guard function always evaluates to true. Therefore you can only have a single When-less FsmEvent for each event name. As stated above, put it last in the list insied its parent FsmStep.
 3. Omission of a Do attribute means no action function is invoked on the transition between steps.
 4. Omission of a Then attribute causes the current active step to remain the same. A 'Do' action function will still be invoked if one was identified in the FsmEvent.
 
