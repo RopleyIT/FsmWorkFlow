@@ -219,7 +219,7 @@ public partial class FsmWorkFlow
     /// <param name="eventName">The name of the
     /// event you wish to trigger</param>
 
-    public void Fire(string eventName)
+    public async Task Fire(string eventName)
     {
         try
         {
@@ -255,15 +255,14 @@ public partial class FsmWorkFlow
             // If an event was found, execute the action associated
             // with the transition, then jump to the new state
 
-            if (validEvent != null)
+            if (validEvent != null && validEvent.Do != null)
+                await validEvent.Do.Invoke(UpdateSpinner);
+
+            FsmStep? nextStep = NextStep(validEvent);
+            if (nextStep != null)
             {
-                validEvent.Do?.Invoke();
-                FsmStep? nextStep = NextStep(validEvent);
-                if (nextStep != null)
-                {
-                    PreviousState = ActiveState;
-                    ActiveState = nextStep;
-                }
+                PreviousState = ActiveState;
+                ActiveState = nextStep;
             }
         }
         catch (Exception ex)
@@ -288,6 +287,30 @@ public partial class FsmWorkFlow
                 ActiveState = errStep;
             }
         }
+        finally
+        {
+            UpdateSpinner(null);
+        }
+    }
+
+    /// <summary>
+    /// Displayed content of Spinner component
+    /// </summary>
+    
+    private string? spinnerContent = null;
+
+    /// <summary>
+    /// Update the text in the Spinner. Note that
+    /// setting the text to null hides the spinner.
+    /// </summary>
+    /// <param name="message">The message to be
+    /// shown in the spinner, or null to hide
+    /// the spinner</param>
+
+    private void UpdateSpinner(string? message)
+    {
+        spinnerContent = message;
+        InvokeAsync(StateHasChanged);
     }
 
     /// <summary>

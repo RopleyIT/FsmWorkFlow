@@ -163,9 +163,15 @@
 
     // Action functions on transitions (Do functions)
 
-    private void PerformAnalysis()
+    private async Task PerformAnalysis(Action<string> report)
     {
+        report("Having a snooze . . .");
+        await Task.Delay(2000);
+        report("Doing the analysis . . .");
         exampleService.Analyze(model);
+        await Task.Delay(1000);
+        report("Pretending to be Oracle . . .");
+        await Task.Delay(2000);
     }
 
     // Step status functions, used to choose

@@ -34,7 +34,7 @@ public partial class FsmEvent
     /// between states
     /// </summary>
     [Parameter]
-    public Action? Do { get; set; }
+    public Func<Action<string>, Task>? Do { get; set; }
 
     /// <summary>
     /// The name of the next state to jump to

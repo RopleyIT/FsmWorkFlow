@@ -59,7 +59,7 @@
 
     public FsmWorkFlow? fsmWorkFlow { get; set; }
     bool ThrowingGuard() { throw new Exception("Guard exception"); }
-    void FromStep1Action() { testModel += " From Step 1"; }
-    void FromStep2Action() { testModel += " From Step 2"; }
-    void ThrowingAction() { throw new Exception("Action exception"); }
+    async Task FromStep1Action(Action<string> report) { testModel += " From Step 1"; }
+    async Task FromStep2Action(Action<string> report) { testModel += " From Step 2"; }
+    async Task ThrowingAction(Action<string> report) { throw new Exception("Action exception"); }
 }

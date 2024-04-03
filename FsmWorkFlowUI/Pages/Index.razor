@@ -10,9 +10,8 @@
     This page sets up the simple login workflow as
     described in the README.md documentation file.
 </p>
-<Spinner Enabled="@showSpinner" Message="@spinText"/>
+<Spinner Message="@spinText"/>
 <button @onclick="ToggleSpinner">Toggle spinner</button>
-<button @onclick="UpdateText">Update time</button>
 <FsmWorkFlow Model="@model" @ref=workFlow ErrDialog="Unexpected Exception">
     <FsmDialog Name="Unexpected Exception">
         <p>
@@ -84,10 +83,14 @@
 
 @code {
     // Playing with the spinner
-    bool showSpinner = false;
-    string spinText = "I am spinning . . .";
-    void ToggleSpinner() => showSpinner = !showSpinner;
-    void UpdateText() => spinText = DateTime.Now.ToString();
+    string? spinText = null;
+    void ToggleSpinner()
+    {
+        if (spinText == null)
+            spinText = DateTime.Now.ToString();
+        else
+            spinText = null;
+    }
 
     // Variables used in the markup
     DlgModal? dlgModal { get; set; }
@@ -107,20 +110,20 @@
     bool UserNameTyped() => !string.IsNullOrWhiteSpace(model?.UserName);
 
     // Action functions
-    void ThrowSomething() 
+    async Task ThrowSomething(Action<string> report) 
     { 
         throw new InvalidOperationException("The thrown exception message"); 
     }
 
-    void IssueAuthToken() { model.AuthToken = authService.IssueKey(model?.UserName, model?.Password); }
+    async Task IssueAuthToken(Action<string> report) { model.AuthToken = authService.IssueKey(model?.UserName, model?.Password); }
     
     // void ShowLoginError() 
     // { 
     //     error = "Name or password invalid";
     // }
 
-    void NeedAUserName() { error = "Please provide a valid user name"; }
-    void RescindToken() { model = authService.CreateLoginModel(); error = string.Empty; }
+    async Task NeedAUserName(Action<string> report) { error = "Please provide a valid user name"; }
+    async Task RescindToken(Action<string> report) { model = authService.CreateLoginModel(); error = string.Empty; }
 
     // Status functions
     FsmStepStatus UserNameStatus() => UserNameTyped() ? FsmStepStatus.Done : FsmStepStatus.InProgress;
