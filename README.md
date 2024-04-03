@@ -112,7 +112,7 @@ The attributes of the `FsmEvent` element match the fields of the transitions on 
 | --- | --- | --- |
 | `On` | `string` | Gives a name to the event that must be fired for this transition to take place. |
 | `When` | `Func<bool>` | A function that computes the guard condition that must be true if this transition is to be taken. If omitted, the transition can always be taken when this event is fired. |
-| `Do` | `Action` | A void function that will be executed as the transition is taken. If omitted, no action is taken but the transition still happens. |
+| `Do` | `Action` | An async function that will be executed as the transition is taken. If omitted, no action is taken but the transition still happens. Note that the signature of this item is `Func<Action<string>, Task>` where the `Action<string>` argument passed in points to a function to be called if the Do function is taking a long time (calls to `await`). By calling this function you can pass a message to be displayed alongside a spinner on the web page. Calling it with a null argument removes the spinner. Removal of the spinner will happen automatically when you return from the Do function. |
 | `Then` | `string` | The name of the next state or step to transit to. Note that the state transition engine has a memory of one previous state. Using the value `"$back"` for this attribute value will move to the previous state, regardless of what that previous state was. This is provided for dialog support, and should not be used under normal workflow circumstances.|
 
 If we complete all the remaining events for the three states in the workflow, they would look like the following. Note that the required guard functions and actions have also been added to the code section:
@@ -147,10 +147,10 @@ If we complete all the remaining events for the three states in the workflow, th
     bool UserNameTyped() => !string.IsNullOrWhiteSpace(model?.UserName);
 
     // Action functions
-    void IssueAuthToken() { model.AuthToken = authService.IssueKey(model?.UserName, model?.Password); }
-    void ShowLoginError() { error = "Name or password invalid"; }
-    void NeedAUserName() { error = "Please provide a valid user name"; }
-    void RescindToken() { model = authService.CreateLoginModel(); error = string.Empty; }
+    async Task IssueAuthToken(Action<string> reporter) { model.AuthToken = authService.IssueKey(model?.UserName, model?.Password); }
+    async Task ShowLoginError(Action<string> reporter) { error = "Name or password invalid"; }
+    async Task NeedAUserName(Action<string> reporter) { error = "Please provide a valid user name"; }
+    async Task RescindToken(Action<string> reporter) { model = authService.CreateLoginModel(); error = string.Empty; }
 }
 ```
 Some things to note about the event elements:
