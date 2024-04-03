@@ -10,6 +10,9 @@
     This page sets up the simple login workflow as
     described in the README.md documentation file.
 </p>
+<Spinner Enabled="@showSpinner" Message="@spinText"/>
+<button @onclick="ToggleSpinner">Toggle spinner</button>
+<button @onclick="UpdateText">Update time</button>
 <FsmWorkFlow Model="@model" @ref=workFlow ErrDialog="Unexpected Exception">
     <FsmDialog Name="Unexpected Exception">
         <p>
@@ -80,6 +83,12 @@
 </DlgModal>
 
 @code {
+    // Playing with the spinner
+    bool showSpinner = false;
+    string spinText = "I am spinning . . .";
+    void ToggleSpinner() => showSpinner = !showSpinner;
+    void UpdateText() => spinText = DateTime.Now.ToString();
+
     // Variables used in the markup
     DlgModal? dlgModal { get; set; }
     LoginModel? model;
