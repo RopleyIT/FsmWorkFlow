@@ -198,18 +198,25 @@ public partial class FsmWorkFlow
     public FsmEvent? SingleValidTransitionTo
         (FsmStep target)
     {
-        if (ActiveState == null || ActiveState.Transitions == null)
+        try
+        {
+            if (ActiveState == null || ActiveState.Transitions == null)
+                return null;
+            var targetTransitions
+                = ActiveState.Transitions
+                    .Where(e => e.Then != null
+                    && e.Then == target.Name
+                    && (e.When == null || e.When()))
+                    .ToArray();
+            if (targetTransitions.Length == 1)
+                return targetTransitions[0];
+            else
+                return null;
+        }
+        catch (Exception ex)
+        {
             return null;
-        var targetTransitions
-            = ActiveState.Transitions
-                .Where(e => e.Then != null
-                && e.Then == target.Name
-                && (e.When == null || e.When()))
-                .ToArray();
-        if (targetTransitions.Length == 1)
-            return targetTransitions[0];
-        else
-            return null;
+        }
     }
 
     /// <summary>
