@@ -112,7 +112,7 @@ The attributes of the `FsmEvent` element match the fields of the transitions on 
 | --- | --- | --- |
 | `On` | `string` | Gives a name to the event that must be fired for this transition to take place. |
 | `When` | `Func<bool>` | A function that computes the guard condition that must be true if this transition is to be taken. If omitted, the transition can always be taken when this event is fired. |
-| `Do` | `Action` | A void function that will be executed as the transition is taken. If omitted, no action is taken but the transition still happens. |
+| `Do` | `Action` | An async function that will be executed as the transition is taken. If omitted, no action is taken but the transition still happens. Note that the signature of this item is `Func<Action<string>, Task>` where the `Action<string>` argument passed in points to a function to be called if the Do function is taking a long time (calls to `await`). By calling this function you can pass a message to be displayed alongside a spinner on the web page. Calling it with a null argument removes the spinner. Removal of the spinner will happen automatically when you return from the Do function. |
 | `Then` | `string` | The name of the next state or step to transit to. Note that the state transition engine has a memory of one previous state. Using the value `"$back"` for this attribute value will move to the previous state, regardless of what that previous state was. This is provided for dialog support, and should not be used under normal workflow circumstances.|
 
 If we complete all the remaining events for the three states in the workflow, they would look like the following. Note that the required guard functions and actions have also been added to the code section:
@@ -147,15 +147,15 @@ If we complete all the remaining events for the three states in the workflow, th
     bool UserNameTyped() => !string.IsNullOrWhiteSpace(model?.UserName);
 
     // Action functions
-    void IssueAuthToken() { model.AuthToken = authService.IssueKey(model?.UserName, model?.Password); }
-    void ShowLoginError() { error = "Name or password invalid"; }
-    void NeedAUserName() { error = "Please provide a valid user name"; }
-    void RescindToken() { model = authService.CreateLoginModel(); error = string.Empty; }
+    async Task IssueAuthToken(Action<string> reporter) { model.AuthToken = authService.IssueKey(model?.UserName, model?.Password); }
+    async Task ShowLoginError(Action<string> reporter) { error = "Name or password invalid"; }
+    async Task NeedAUserName(Action<string> reporter) { error = "Please provide a valid user name"; }
+    async Task RescindToken(Action<string> reporter) { model = authService.CreateLoginModel(); error = string.Empty; }
 }
 ```
 Some things to note about the event elements:
-1. Each FsmEvent element does not need to have unique Name attributes. However, they will need different When attributes so that different guard conditions can evaluate which transition to take. The guards are evaluated in the order they appear inside the paren FsmStep element, so don't put the guardless FsmEvent at the top of the list!
-2. Omission of a When attribute behaves as if the guard function always evaluates to true. Therefore you can only have a single When-less FsmEvent for each event name.
+1. Each FsmEvent element does not need to have unique Name attributes. However if they have identical names, they will need different When attributes so that different guard conditions can evaluate which transition to take. The guards are evaluated in the order they are listed inside the parent FsmStep element, so don't put the guardless FsmEvent at the top of the list!
+2. Omission of a When attribute behaves as if the guard function always evaluates to true. Therefore you can only have a single When-less FsmEvent for each event name. As stated above, put it last in the list insied its parent FsmStep.
 3. Omission of a Do attribute means no action function is invoked on the transition between steps.
 4. Omission of a Then attribute causes the current active step to remain the same. A 'Do' action function will still be invoked if one was identified in the FsmEvent.
 
